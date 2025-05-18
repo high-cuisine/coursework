@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int         @id @default(autoincrement())
+  username    String?     @db.VarChar(255)
+  telegramId  String      @unique @db.VarChar(255)
+  multitap    Int
+  fastSpeed   Int
+  galacticBot Boolean
+  UserTasks   UserTasks[]
+
+  dailyRecharge Int
+  dailyMultiply Int
+
+  tasks             Task[]     @relation("UserTasks")
+  referralsSent     Referral[] @relation("ReferralSent")
+  referralsReceived Referral[] @relation("ReferralReceived")
+
+  @@index([telegramId])
+  @@map("users")
+}
+
+model Task {
+  id     Int      @id @default(autoincrement())
+  type   TaskType
+  reward Int
+  title  String
+
+  userId    Int
+  user      User        @relation("UserTasks", fields: [userId], references: [id])
+  UserTasks UserTasks[]
+
+  @@map("tasks")
+}
+
+model UserTasks {
+  userId Int
+  taskId Int
+
+  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id])
+
+  @@id([userId, taskId])
+  @@index([userId])
+  @@index([taskId])
+  @@map("user_task")
+}
+
+model Referral {
+  id         Int @id @default(autoincrement())
+  referrerId Int
+  referredId Int
+
+  referrer User @relation("ReferralSent", fields: [referrerId], references: [id])
+  referred User @relation("ReferralReceived", fields: [referredId], references: [id])
+
+  @@map("referrals")
+}
+
+enum TaskType {
+  Special
+  Leagues
+  Ref
+}
