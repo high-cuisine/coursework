@@ -6,4 +6,9 @@ export declare class ReportsController {
     getAllReports(req: Request, res: Response): Promise<void>;
     getById(req: Request, res: Response): Promise<void>;
     createReport(req: Request, res: Response): Promise<void>;
+    deleteReport(req: Request, res: Response): Promise<void>;
+    updateReport(req: Request, res: Response): Promise<void>;
+    getInventoryReport(): Promise<{
+        inventory: any[];
+    }>;
 }

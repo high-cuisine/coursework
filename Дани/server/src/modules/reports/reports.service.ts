@@ -47,5 +47,41 @@ export class ReportsService {
         const { rows } = await pool.query(query, [store_id, month, total_revenue, id]);
         return rows;
     }
+
+    async getInventoryReport() {
+        const query = `
+            WITH SupplyTotals AS (
+                SELECT 
+                    s.StoreID,
+                    s.ProductID,
+                    SUM(s.Quantity) as TotalSupplied
+                FROM Supply s
+                GROUP BY s.StoreID, s.ProductID
+            ),
+            SaleTotals AS (
+                SELECT 
+                    s.StoreID,
+                    s.ProductID,
+                    SUM(s.Quantity) as TotalSold
+                FROM Sale s
+                GROUP BY s.StoreID, s.ProductID
+            )
+            SELECT 
+                p.ProductName as productName,
+                st.StoreName as storeName,
+                COALESCE(sup.TotalSupplied, 0) - COALESCE(sal.TotalSold, 0) as quantity
+            FROM Product p
+            CROSS JOIN Store st
+            LEFT JOIN SupplyTotals sup ON sup.ProductID = p.ProductID AND sup.StoreID = st.StoreID
+            LEFT JOIN SaleTotals sal ON sal.ProductID = p.ProductID AND sal.StoreID = st.StoreID
+            WHERE COALESCE(sup.TotalSupplied, 0) - COALESCE(sal.TotalSold, 0) > 0
+            ORDER BY st.StoreName, p.ProductName;
+        `;
+        
+        const { rows } = await pool.query(query);
+        return {
+            inventory: rows
+        };
+    }
 }
 

@@ -1,54 +1,49 @@
-/* филиалы банка */
+-- Филиалы банка
 CREATE TABLE branch (
     branch_id  SERIAL PRIMARY KEY,
     name       TEXT NOT NULL
 );
 
-/* юридические лица (актуальные реквизиты) */
+-- Юридические лица (текущая сущность организации)
 CREATE TABLE organization (
     org_id     SERIAL PRIMARY KEY,
     name       TEXT NOT NULL
 );
 
-/* версии реквизитов организации  ─ хранит историю изменений   */
-/* актуальная версия – та, у которой valid_to IS NULL          */
+-- Версии реквизитов организации
 CREATE TABLE organization_rev (
     rev_id     SERIAL PRIMARY KEY,
-    org_id     INT   NOT NULL REFERENCES organization(org_id),
-    name       TEXT  NOT NULL,          -- имя/текущее юр.-название
+    org_id     INTEGER NOT NULL REFERENCES organization(org_id) ON DELETE CASCADE,
+    name       TEXT NOT NULL,
     inn        VARCHAR(12),
     kpp        VARCHAR(9),
     address    TEXT,
-    valid_from DATE  NOT NULL,
-    valid_to   DATE
+    valid_from DATE NOT NULL,
+    valid_to   DATE,
+    CHECK (valid_to IS NULL OR valid_to > valid_from)
 );
 
-/* расчётные счета организации */
+-- Расчётные счета организации
 CREATE TABLE account (
     account_no CHAR(20) PRIMARY KEY,
-    org_id     INT NOT NULL REFERENCES organization(org_id)
+    org_id     INTEGER NOT NULL REFERENCES organization(org_id) ON DELETE CASCADE
 );
 
-/* назначения платежей (услуги)                                 */
-/* одно назначение → максимум один счёт,                        */
-/* на один счёт может приходиться много назначений              */
+-- Назначения платежей
 CREATE TABLE purpose (
     purpose_id   SERIAL PRIMARY KEY,
-    org_id       INT  NOT NULL REFERENCES organization(org_id),
-    account_no   CHAR(20) NOT NULL REFERENCES account(account_no),
+    account_no   CHAR(20) NOT NULL REFERENCES account(account_no) ON DELETE CASCADE,
     purpose_name TEXT NOT NULL,
-    UNIQUE (org_id, purpose_name)          -- исключает дубль услуг
+    UNIQUE (account_no, purpose_name)
 );
 
-/* поступившие платежи                                           */
-/* org_rev_id фиксирует исходные реквизиты,                      */
-/* а через purpose → account/org_id получаем «обновлённые» данные */
+-- Платежи
 CREATE TABLE payment (
     payment_id   BIGSERIAL PRIMARY KEY,
-    pay_date     DATE   NOT NULL,
-    branch_id    INT    NOT NULL REFERENCES branch(branch_id),
-    purpose_id   INT    NOT NULL REFERENCES purpose(purpose_id),
-    payer_name   TEXT   NOT NULL,
-    amount       NUMERIC(12,2) NOT NULL CHECK (amount > 0),
-    org_rev_id   INT    NOT NULL REFERENCES organization_rev(rev_id)
+    pay_date     DATE NOT NULL,
+    branch_id    INTEGER NOT NULL REFERENCES branch(branch_id) ON DELETE RESTRICT,
+    purpose_id   INTEGER NOT NULL REFERENCES purpose(purpose_id) ON DELETE RESTRICT,
+    payer_name   TEXT NOT NULL,
+    amount       NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
+    org_rev_id   INTEGER NOT NULL REFERENCES organization_rev(rev_id) ON DELETE RESTRICT
 );

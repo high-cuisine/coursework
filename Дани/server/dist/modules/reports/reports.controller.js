@@ -15,14 +15,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportsController = void 0;
 const common_1 = require("@nestjs/common");
 const reports_service_1 = require("./reports.service");
+const jwt_guard_1 = require("../auth/jwt.guard");
 let ReportsController = class ReportsController {
     constructor(reportService) {
         this.reportService = reportService;
     }
     async getAllReports(req, res) {
+        const response = await this.reportService.getTAllReports();
+        res.status(200).json(response);
     }
     async getById(req, res) {
-        const { id } = req.query;
+        const { id } = req.params;
+        `SELECT * FROM tests WHERE id = ${id}`;
         const response = await this.reportService.getReportById(Number(id));
         res.status(200).json(response);
     }
@@ -30,6 +34,20 @@ let ReportsController = class ReportsController {
         const { store_id, month, total_revenue } = req.body;
         const response = await this.reportService.createReport(Number(store_id), Number(month), Number(total_revenue));
         res.status(200).json(response);
+    }
+    async deleteReport(req, res) {
+        const { id } = req.params;
+        const response = await this.reportService.deleteReport(Number(id));
+        res.status(200).json(response);
+    }
+    async updateReport(req, res) {
+        const { id } = req.params;
+        const { store_id, month, total_revenue } = req.body;
+        const response = await this.reportService.updateReport(Number(id), Number(store_id), Number(month), Number(total_revenue));
+        res.status(200).json(response);
+    }
+    async getInventoryReport() {
+        return this.reportService.getInventoryReport();
     }
 };
 exports.ReportsController = ReportsController;
@@ -42,7 +60,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ReportsController.prototype, "getAllReports", null);
 __decorate([
-    (0, common_1.Get)('/by-id'),
+    (0, common_1.Get)('/by-id/:id'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
@@ -57,8 +75,31 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], ReportsController.prototype, "createReport", null);
+__decorate([
+    (0, common_1.Delete)('/delete/:id'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "deleteReport", null);
+__decorate([
+    (0, common_1.Patch)('/update/:id'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "updateReport", null);
+__decorate([
+    (0, common_1.Get)('inventory'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "getInventoryReport", null);
 exports.ReportsController = ReportsController = __decorate([
-    (0, common_1.Controller)('shops'),
+    (0, common_1.Controller)('reports'),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [reports_service_1.ReportsService])
 ], ReportsController);
 //# sourceMappingURL=reports.controller.js.map

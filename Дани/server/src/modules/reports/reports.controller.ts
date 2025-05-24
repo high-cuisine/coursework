@@ -1,8 +1,10 @@
-import { Controller, Delete, Get, Patch, Post, Req, Res } from '@nestjs/common';
+import { Controller, Delete, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { Request, Response } from 'express'; 
+import { JwtAuthGuard } from '../auth/jwt.guard';
 
-@Controller('shops')
+@Controller('reports')
+@UseGuards(JwtAuthGuard)
 export class ReportsController {
 
     constructor(
@@ -68,5 +70,10 @@ export class ReportsController {
         const response = await this.reportService.updateReport(Number(id), Number(store_id), Number(month), Number(total_revenue));
 
         res.status(200).json(response);
+    }
+
+    @Get('inventory')
+    async getInventoryReport() {
+        return this.reportService.getInventoryReport();
     }
 }

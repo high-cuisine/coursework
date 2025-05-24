@@ -1,35 +1,3 @@
-# Логи
-*.log
-logs/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Директории зависимостей и сборки
+/node_modules
 node_modules/
-dist/
-build/
-.cache/
-.temp/
-
-# Игнорировать конфиги IDE
-.idea/
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Coverage (если используете тесты)
-coverage/
-.nyc_output/
-
-# Другое
-.DS_Store
-Thumbs.db
-
-Дани/client/my-app/node_modules
-Дани/server/node_modules
-/Дани/client/my-app/node_modules
+./node_modules

@@ -1,3 +1,110 @@
+# Store Management Backend
+
+This is a NestJS backend application for store management with JWT authentication and pure SQL queries.
+
+## Features
+
+- JWT Authentication with password hashing
+- Pure SQL queries for all database operations
+- CRUD operations for all entities:
+  - Stores
+  - Products
+  - Categories
+  - Supplies
+  - Sales
+  - Reports
+- Request logging
+- Advanced filtering and search capabilities
+- Business logic endpoints for:
+  - Store revenue calculation
+  - Product inventory tracking
+  - Sales history
+  - Supply management
+
+## Prerequisites
+
+- Node.js (v14 or later)
+- PostgreSQL (v12 or later)
+- npm or yarn
+
+## Setup
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Create a PostgreSQL database named 'store_db'
+
+3. Set up environment variables:
+   ```bash
+   PORT=3000
+   JWT_SECRET=your-secret-key-change-this-in-production
+   POSTGRES_HOST=localhost
+   POSTGRES_PORT=5432
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=postgres
+   POSTGRES_DB=store_db
+   ```
+
+4. Run database migrations:
+   ```bash
+   psql -U postgres -d store_db -f src/core/.sql
+   ```
+
+5. Start the server:
+   ```bash
+   npm run start:dev
+   ```
+
+## API Endpoints
+
+### Authentication
+- POST /api/auth/register - Register a new user
+- POST /api/auth/login - Login and get JWT token
+
+### Stores
+- GET /api/stores - Get all stores
+- GET /api/stores/:id - Get store by ID
+- POST /api/stores - Create a new store
+- PUT /api/stores/:id - Update a store
+- DELETE /api/stores/:id - Delete a store
+- GET /api/stores/:id/revenue - Get store revenue
+- GET /api/stores/:id/inventory - Get store inventory
+
+### Products
+- GET /api/products - Get all products (with optional filters)
+- GET /api/products/:id - Get product by ID
+- POST /api/products - Create a new product
+- PUT /api/products/:id - Update a product
+- DELETE /api/products/:id - Delete a product
+- GET /api/products/:id/sales - Get product sales history
+- GET /api/products/:id/supplies - Get product supply history
+
+## Security
+
+- All endpoints (except auth) require JWT authentication
+- Passwords are hashed using bcrypt
+- SQL injection prevention using parameterized queries
+- Request logging for security auditing
+
+## Error Handling
+
+The application includes comprehensive error handling:
+- Database connection errors
+- Query errors
+- Authentication errors
+- Validation errors
+- Not found errors
+
+## Logging
+
+All application events are logged to the console:
+- HTTP requests and responses
+- Database queries and their execution time
+- Authentication events
+- Error events
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
