@@ -6,6 +6,7 @@ import { Pool } from 'pg';
 import { databasePool } from '../../core/database.config';
 import { config } from '../../core/config';
 import { JwtAuthGuard } from './jwt.guard';
+import { RolesGuard } from './roles.guard';
 
 @Module({
   imports: [
@@ -17,12 +18,13 @@ import { JwtAuthGuard } from './jwt.guard';
   providers: [
     AuthService,
     JwtAuthGuard,
+    RolesGuard,
     {
       provide: Pool,
       useValue: databasePool,
     },
   ],
   controllers: [AuthController],
-  exports: [AuthService, JwtAuthGuard],
+  exports: [AuthService, JwtAuthGuard, RolesGuard, JwtModule],
 })
 export class AuthModule {} 

@@ -15,6 +15,7 @@ const pg_1 = require("pg");
 const database_config_1 = require("../../core/database.config");
 const config_1 = require("../../core/config");
 const jwt_guard_1 = require("./jwt.guard");
+const roles_guard_1 = require("./roles.guard");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -29,13 +30,14 @@ exports.AuthModule = AuthModule = __decorate([
         providers: [
             auth_service_1.AuthService,
             jwt_guard_1.JwtAuthGuard,
+            roles_guard_1.RolesGuard,
             {
                 provide: pg_1.Pool,
                 useValue: database_config_1.databasePool,
             },
         ],
         controllers: [auth_controller_1.AuthController],
-        exports: [auth_service_1.AuthService, jwt_guard_1.JwtAuthGuard],
+        exports: [auth_service_1.AuthService, jwt_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, jwt_1.JwtModule],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -18,6 +18,7 @@ import {
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { endpoints } from '../utils/api';
+import Filter from './Filter';
 
 interface Inspector {
   inspectorid: number;
@@ -40,6 +41,7 @@ const Inspectors: React.FC = () => {
   const [selectedInspector, setSelectedInspector] = useState<Inspector | null>(null);
   const [formData, setFormData] = useState<Partial<Inspector>>({});
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const queryClient = useQueryClient();
 
   const { data: inspectors, isLoading } = useQuery<Inspector[]>({
@@ -68,7 +70,7 @@ const Inspectors: React.FC = () => {
       handleClose();
     },
     onError: () => {
-      setError('Failed to create inspector');
+      setError('Не удалось создать инспектора');
     },
   });
 
@@ -85,7 +87,7 @@ const Inspectors: React.FC = () => {
       handleClose();
     },
     onError: () => {
-      setError('Failed to update inspector');
+      setError('Не удалось обновить инспектора');
     },
   });
 
@@ -97,7 +99,7 @@ const Inspectors: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['inspectors'] });
     },
     onError: () => {
-      setError('Failed to delete inspector');
+      setError('Не удалось удалить инспектора');
     },
   });
 
@@ -130,16 +132,16 @@ const Inspectors: React.FC = () => {
 
   const columns: GridColDef[] = [
     { field: 'inspectorid', headerName: 'ID', width: 70 },
-    { field: 'lastname', headerName: 'Last Name', width: 130 },
-    { field: 'firstname', headerName: 'First Name', width: 130 },
-    { field: 'middlename', headerName: 'Middle Name', width: 130 },
-    { field: 'position', headerName: 'Position', width: 130 },
-    { field: 'hiredate', headerName: 'Hire Date', width: 130 },
-    { field: 'accesslevel', headerName: 'Access Level', width: 130 },
-    { field: 'departmentid', headerName: 'Department ID', width: 130 },
+    { field: 'lastname', headerName: 'Фамилия', width: 130 },
+    { field: 'firstname', headerName: 'Имя', width: 130 },
+    { field: 'middlename', headerName: 'Отчество', width: 130 },
+    { field: 'position', headerName: 'Должность', width: 130 },
+    { field: 'hiredate', headerName: 'Дата приема', width: 130 },
+    { field: 'accesslevel', headerName: 'Уровень доступа', width: 130 },
+    { field: 'departmentid', headerName: 'ID отдела', width: 130 },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: 'Действия',
       width: 200,
       renderCell: (params) => (
         <Box>
@@ -150,7 +152,7 @@ const Inspectors: React.FC = () => {
             onClick={() => handleOpen(params.row)}
             sx={{ mr: 1 }}
           >
-            Edit
+            Изменить
           </Button>
           <Button
             variant="contained"
@@ -158,24 +160,58 @@ const Inspectors: React.FC = () => {
             size="small"
             onClick={() => deleteMutation.mutate(params.row.inspectorid)}
           >
-            Delete
+            Удалить
           </Button>
         </Box>
       ),
     },
   ];
 
+  const filterFields = [
+    { field: 'fullname', label: 'Полное имя' },
+    { field: 'badgeid', label: 'ID пропуска' },
+    { field: 'position', label: 'Должность' },
+    { field: 'email', label: 'Email' },
+  ];
+
+  const handleFilterChange = (field: string, value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFilterReset = () => {
+    setFilters({});
+  };
+
+  const filteredInspectors = useMemo(() => {
+    if (!inspectors) return [];
+    
+    return inspectors.filter(inspector => {
+      return Object.entries(filters).every(([field, value]) => {
+        if (!value) return true;
+        const fieldValue = String(inspector[field as keyof Inspector]).toLowerCase();
+        return fieldValue.includes(value.toLowerCase());
+      });
+    });
+  }, [inspectors, filters]);
+
   return (
     <Box sx={{ height: 600, width: '100%', p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h5">Inspectors</Typography>
+        <Typography variant="h5">Инспекторы</Typography>
         <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-          Add Inspector
+          Добавить инспектора
         </Button>
       </Box>
 
+      <Filter
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleFilterReset}
+        filterFields={filterFields}
+      />
+
       <DataGrid
-        rows={inspectors || []}
+        rows={filteredInspectors}
         columns={columns}
         initialState={{
           pagination: {
@@ -191,13 +227,13 @@ const Inspectors: React.FC = () => {
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {selectedInspector ? 'Edit Inspector' : 'Add New Inspector'}
+          {selectedInspector ? 'Редактировать инспектора' : 'Добавить инспектора'}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             <TextField
               fullWidth
-              label="Last Name"
+              label="Фамилия"
               value={formData.lastname || ''}
               onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
               margin="normal"
@@ -205,7 +241,7 @@ const Inspectors: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="First Name"
+              label="Имя"
               value={formData.firstname || ''}
               onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
               margin="normal"
@@ -213,14 +249,14 @@ const Inspectors: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Middle Name"
+              label="Отчество"
               value={formData.middlename || ''}
               onChange={(e) => setFormData({ ...formData, middlename: e.target.value })}
               margin="normal"
             />
             <TextField
               fullWidth
-              label="Position"
+              label="Должность"
               value={formData.position || ''}
               onChange={(e) => setFormData({ ...formData, position: e.target.value })}
               margin="normal"
@@ -228,7 +264,7 @@ const Inspectors: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Hire Date"
+              label="Дата приема"
               type="date"
               value={formData.hiredate || ''}
               onChange={(e) => setFormData({ ...formData, hiredate: e.target.value })}
@@ -237,22 +273,22 @@ const Inspectors: React.FC = () => {
               InputLabelProps={{ shrink: true }}
             />
             <FormControl fullWidth margin="normal">
-              <InputLabel>Access Level</InputLabel>
+              <InputLabel>Уровень доступа</InputLabel>
               <Select
                 value={formData.accesslevel || ''}
-                label="Access Level"
+                label="Уровень доступа"
                 onChange={(e) => setFormData({ ...formData, accesslevel: e.target.value })}
                 required
               >
-                <MenuItem value="admin">Admin</MenuItem>
-                <MenuItem value="inspector">Inspector</MenuItem>
+                <MenuItem value="admin">Администратор</MenuItem>
+                <MenuItem value="inspector">Инспектор</MenuItem>
               </Select>
             </FormControl>
             <FormControl fullWidth margin="normal">
-              <InputLabel>Department</InputLabel>
+              <InputLabel>Отдел</InputLabel>
               <Select
                 value={formData.departmentid || ''}
-                label="Department"
+                label="Отдел"
                 onChange={(e) => setFormData({ ...formData, departmentid: Number(e.target.value) })}
                 required
               >
@@ -265,9 +301,9 @@ const Inspectors: React.FC = () => {
             </FormControl>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleClose}>Отмена</Button>
             <Button type="submit" variant="contained" color="primary">
-              {selectedInspector ? 'Update' : 'Create'}
+              {selectedInspector ? 'Обновить' : 'Создать'}
             </Button>
           </DialogActions>
         </form>

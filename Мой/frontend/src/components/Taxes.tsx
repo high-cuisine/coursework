@@ -50,7 +50,7 @@ const Taxes: React.FC = () => {
       handleClose();
     },
     onError: () => {
-      setError('Failed to create tax');
+      setError('Не удалось создать налог');
     },
   });
 
@@ -64,7 +64,7 @@ const Taxes: React.FC = () => {
       handleClose();
     },
     onError: () => {
-      setError('Failed to update tax');
+      setError('Не удалось обновить налог');
     },
   });
 
@@ -76,7 +76,7 @@ const Taxes: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['taxes'] });
     },
     onError: () => {
-      setError('Failed to delete tax');
+      setError('Не удалось удалить налог');
     },
   });
 
@@ -109,15 +109,15 @@ const Taxes: React.FC = () => {
 
   const columns: GridColDef[] = [
     { field: 'taxid', headerName: 'ID', width: 70 },
-    { field: 'taxcode', headerName: 'Tax Code', width: 130 },
-    { field: 'taxname', headerName: 'Tax Name', width: 200 },
-    { field: 'rate', headerName: 'Rate', width: 100 },
-    { field: 'regulatorydocument', headerName: 'Regulatory Document', width: 200 },
-    { field: 'description', headerName: 'Description', width: 200 },
-    { field: 'taxtype', headerName: 'Tax Type', width: 130 },
+    { field: 'taxcode', headerName: 'Код налога', width: 130 },
+    { field: 'taxname', headerName: 'Название налога', width: 200 },
+    { field: 'rate', headerName: 'Ставка', width: 100 },
+    { field: 'regulatorydocument', headerName: 'Нормативный документ', width: 200 },
+    { field: 'description', headerName: 'Описание', width: 200 },
+    { field: 'taxtype', headerName: 'Тип налога', width: 130 },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: 'Действия',
       width: 200,
       renderCell: (params) => (
         <Box>
@@ -128,7 +128,7 @@ const Taxes: React.FC = () => {
             onClick={() => handleOpen(params.row)}
             sx={{ mr: 1 }}
           >
-            Edit
+            Изменить
           </Button>
           <Button
             variant="contained"
@@ -136,7 +136,7 @@ const Taxes: React.FC = () => {
             size="small"
             onClick={() => deleteMutation.mutate(params.row.taxid)}
           >
-            Delete
+            Удалить
           </Button>
         </Box>
       ),
@@ -146,9 +146,9 @@ const Taxes: React.FC = () => {
   return (
     <Box sx={{ height: 600, width: '100%', p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h5">Taxes</Typography>
+        <Typography variant="h5">Налоги</Typography>
         <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-          Add Tax
+          Добавить налог
         </Button>
       </Box>
 
@@ -169,13 +169,13 @@ const Taxes: React.FC = () => {
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>
-          {selectedTax ? 'Edit Tax' : 'Add New Tax'}
+          {selectedTax ? 'Редактировать налог' : 'Добавить налог'}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             <TextField
               fullWidth
-              label="Tax Code"
+              label="Код налога"
               value={formData.taxcode || ''}
               onChange={(e) => setFormData({ ...formData, taxcode: e.target.value })}
               margin="normal"
@@ -183,7 +183,7 @@ const Taxes: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Tax Name"
+              label="Название налога"
               value={formData.taxname || ''}
               onChange={(e) => setFormData({ ...formData, taxname: e.target.value })}
               margin="normal"
@@ -191,7 +191,7 @@ const Taxes: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Rate"
+              label="Ставка"
               type="number"
               value={formData.rate || ''}
               onChange={(e) => setFormData({ ...formData, rate: parseFloat(e.target.value) })}
@@ -200,14 +200,14 @@ const Taxes: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Regulatory Document"
+              label="Нормативный документ"
               value={formData.regulatorydocument || ''}
               onChange={(e) => setFormData({ ...formData, regulatorydocument: e.target.value })}
               margin="normal"
             />
             <TextField
               fullWidth
-              label="Description"
+              label="Описание"
               value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               margin="normal"
@@ -216,7 +216,7 @@ const Taxes: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Tax Type"
+              label="Тип налога"
               value={formData.taxtype || ''}
               onChange={(e) => setFormData({ ...formData, taxtype: e.target.value })}
               margin="normal"
@@ -224,9 +224,9 @@ const Taxes: React.FC = () => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleClose}>Отмена</Button>
             <Button type="submit" variant="contained" color="primary">
-              {selectedTax ? 'Update' : 'Create'}
+              {selectedTax ? 'Обновить' : 'Создать'}
             </Button>
           </DialogActions>
         </form>

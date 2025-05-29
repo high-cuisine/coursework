@@ -10,22 +10,24 @@ exports.ReportsModule = void 0;
 const common_1 = require("@nestjs/common");
 const reports_service_1 = require("./reports.service");
 const reports_controller_1 = require("./reports.controller");
-const jwt_1 = require("@nestjs/jwt");
-const config_1 = require("../../core/config");
 const auth_module_1 = require("../auth/auth.module");
+const pg_1 = require("pg");
+const database_config_1 = require("../../core/database.config");
 let ReportsModule = class ReportsModule {
 };
 exports.ReportsModule = ReportsModule;
 exports.ReportsModule = ReportsModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            jwt_1.JwtModule.register({
-                secret: config_1.config.jwt.secret,
-                signOptions: { expiresIn: config_1.config.jwt.expiresIn },
-            }),
             auth_module_1.AuthModule,
         ],
-        providers: [reports_service_1.ReportsService],
+        providers: [
+            reports_service_1.ReportsService,
+            {
+                provide: pg_1.Pool,
+                useValue: database_config_1.databasePool,
+            },
+        ],
         controllers: [reports_controller_1.ReportsController],
     })
 ], ReportsModule);

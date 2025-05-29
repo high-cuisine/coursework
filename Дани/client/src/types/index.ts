@@ -1,8 +1,10 @@
 export interface User {
-  id: number;
+  user_id: number;
   username: string;
   email: string;
   role: string;
+  created_at: string;
+  last_login: string;
 }
 
 export interface LoginDto {
@@ -20,15 +22,19 @@ export interface RegisterDto {
 export interface Product {
   productid: number;
   productname: string;
-  description: string;
-  price: number;
   categoryid: number;
+  price: number;
+  description: string;
+  image_url?: string;
+  category?: Category;
+  store_id?: number;
+  current_stock?: number;
 }
 
 export interface Category {
   categoryid: number;
   categoryname: string;
-  productcount: string;
+  productcount: number;
 }
 
 export interface Store {
@@ -43,51 +49,70 @@ export interface Supply {
   productid: number;
   supplydate: string;
   quantity: number;
-  storename: string;
-  productname: string;
+  productname?: string;
+  storename?: string;
 }
 
 export interface Sale {
-  id: number;
-  productId: number;
-  storeId: number;
+  saleid: number;
+  storeid: number;
+  productid: number;
+  saledate: string;
   quantity: number;
-  saleDate: string;
-  product?: Product;
-  store?: Store;
+  totalamount: number;
+  productname?: string;
+  storename?: string;
 }
 
-export interface SalesReport {
-  totalSales: number;
-  totalRevenue: number;
-  salesByProduct: Array<{
-    productName: string;
-    quantity: number;
-    revenue: number;
-  }>;
-  salesByStore: Array<{
-    storeName: string;
-    quantity: number;
-    revenue: number;
-  }>;
+export interface Report {
+  report_id: number;
+  store_id: number;
+  month: string;
+  total_revenue: number;
+  storename?: string;
 }
 
 export interface InventoryReport {
   inventory: Array<{
-    productName: string;
-    storeName: string;
+    productid: number;
+    productname: string;
+    price: number;
+    categoryname: string;
+    currentstock: number;
+  }>;
+}
+
+export interface SalesReport {
+  total_sales: number;
+  total_revenue: number;
+  sales_by_product: Array<{
+    productname: string;
     quantity: number;
+    revenue: number;
+  }>;
+  sales_by_store: Array<{
+    storename: string;
+    quantity: number;
+    revenue: number;
   }>;
 }
 
 export interface ProfitReport {
-  totalProfit: number;
-  profitByProduct: Array<{
-    productName: string;
+  total_profit: number;
+  profit_by_product: Array<{
+    productname: string;
     profit: number;
   }>;
-  profitByStore: Array<{
-    storeName: string;
+  profit_by_store: Array<{
+    storename: string;
     profit: number;
   }>;
+}
+
+export interface CartItem {
+  productid: number;
+  productname: string;
+  price: number;
+  quantity: number;
+  categoryid: number;
 } 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -18,6 +18,7 @@ import {
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { endpoints } from '../utils/api';
+import Filter from './Filter';
 
 interface Violation {
   violationid: number;
@@ -53,6 +54,7 @@ const Violations: React.FC = () => {
   const [selectedViolation, setSelectedViolation] = useState<Violation | null>(null);
   const [formData, setFormData] = useState<Partial<Violation>>({});
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const queryClient = useQueryClient();
 
   const { data: violations, isLoading } = useQuery<Violation[]>({
@@ -196,6 +198,33 @@ const Violations: React.FC = () => {
     },
   ];
 
+  const filterFields = [
+    { field: 'description', label: 'Description' },
+    { field: 'status', label: 'Status' },
+    { field: 'severity', label: 'Severity' },
+    { field: 'taxpayerid', label: 'Taxpayer ID' },
+  ];
+
+  const handleFilterChange = (field: string, value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFilterReset = () => {
+    setFilters({});
+  };
+
+  const filteredViolations = useMemo(() => {
+    if (!violations) return [];
+    
+    return violations.filter(violation => {
+      return Object.entries(filters).every(([field, value]) => {
+        if (!value) return true;
+        const fieldValue = String(violation[field as keyof Violation]).toLowerCase();
+        return fieldValue.includes(value.toLowerCase());
+      });
+    });
+  }, [violations, filters]);
+
   return (
     <Box sx={{ height: 600, width: '100%', p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
@@ -205,8 +234,15 @@ const Violations: React.FC = () => {
         </Button>
       </Box>
 
+      <Filter
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleFilterReset}
+        filterFields={filterFields}
+      />
+
       <DataGrid
-        rows={violations || []}
+        rows={filteredViolations}
         columns={columns}
         initialState={{
           pagination: {

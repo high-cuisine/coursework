@@ -7,7 +7,7 @@ services:
       context: ./client
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"
+      - "5173:3000"
     volumes:
       - ./client:/app
       - /app/node_modules
@@ -21,9 +21,30 @@ services:
       context: ./server
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
       - ./server:/app
       - /app/node_modules
     environment:
-      - NODE_ENV=development 
+      - NODE_ENV=development
+      - DB_USER=postgres
+      - DB_PASSWORD=qwerty
+      - DB_NAME=danyadb
+      - DB_HOST=postgres
+      - DB_PORT=5432
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=qwerty
+      - POSTGRES_DB=danyadb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data: 

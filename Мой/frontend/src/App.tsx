@@ -14,6 +14,7 @@ import Departments from './components/Departments';
 import Taxes from './components/Taxes';
 import Fines from './components/Fines';
 import Properties from './components/Properties';
+import TaxpayerDashboard from './components/TaxpayerDashboard';
 
 const theme = createTheme({
   palette: {
@@ -48,6 +49,24 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   return <>{children}</>;
 };
 
+const DefaultRoute: React.FC = () => {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  switch (user.role) {
+    case 'taxpayer':
+      return <Navigate to="/dashboard" />;
+    case 'admin':
+    case 'inspector':
+      return <Navigate to="/taxpayers" />;
+    default:
+      return <Navigate to="/login" />;
+  }
+};
+
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -59,6 +78,16 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              
+              {/* Taxpayer routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['taxpayer']}>
+                    <TaxpayerDashboard />
+                  </ProtectedRoute>
+                }
+              />
               
               {/* Admin routes */}
               <Route
@@ -121,7 +150,7 @@ const App: React.FC = () => {
               />
               
               {/* Default route */}
-              <Route path="/" element={<Navigate to="/taxpayers" />} />
+              <Route path="/" element={<DefaultRoute />} />
             </Routes>
           </Router>
         </AuthProvider>

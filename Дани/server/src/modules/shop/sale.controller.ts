@@ -1,6 +1,8 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { SaleService } from './sale.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
+import { Roles } from '../../core/decorators/roles.decorator';
+import { Role } from '../../core/types/roles.enum';
 
 class CreateSaleDto {
   storeId: number;
@@ -25,21 +27,25 @@ export class SaleController {
   constructor(private readonly saleService: SaleService) {}
 
   @Post()
+  @Roles(Role.USER, Role.MANAGER, Role.ADMIN)
   create(@Body() createSaleDto: CreateSaleDto) {
     return this.saleService.create(createSaleDto);
   }
 
   @Get()
+  @Roles(Role.MANAGER, Role.ADMIN)
   findAll() {
     return this.saleService.findAll();
   }
 
   @Get(':id')
+  @Roles(Role.USER, Role.MANAGER, Role.ADMIN)
   findOne(@Param('id') id: string) {
     return this.saleService.findOne(+id);
   }
 
   @Get('store/:storeId/history')
+  @Roles(Role.MANAGER, Role.ADMIN)
   getSaleHistory(
     @Param('storeId') storeId: string,
     @Query() { startDate, endDate }: SaleHistoryDto,
@@ -48,11 +54,13 @@ export class SaleController {
   }
 
   @Put(':id')
+  @Roles(Role.MANAGER, Role.ADMIN)
   update(@Param('id') id: string, @Body() updateSaleDto: UpdateSaleDto) {
     return this.saleService.update(+id, updateSaleDto);
   }
 
   @Delete(':id')
+  @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.saleService.remove(+id);
   }

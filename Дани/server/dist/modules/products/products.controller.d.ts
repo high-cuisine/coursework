@@ -1,16 +1,31 @@
 import { ProductsService } from './products.service';
+declare class CreateProductDto {
+    productname: string;
+    description: string;
+    price: number;
+    image_url: string;
+    categoryid: number;
+}
 declare class UpdateProductDto {
-    productName?: string;
-    categoryId?: number;
+    productname?: string;
+    description?: string;
     price?: number;
+    image_url?: string;
+    categoryid?: number;
+}
+declare class UpdateStockDto {
+    store_id: number;
+    quantity: number;
 }
 export declare class ProductsController {
     private readonly productsService;
+    private readonly logger;
     constructor(productsService: ProductsService);
-    create(date: any): Promise<any>;
-    findAll(): Promise<any[]>;
-    findOne(id: string): Promise<any>;
-    update(id: string, updateProductDto: UpdateProductDto): Promise<any>;
-    remove(id: string): Promise<any>;
+    getProducts(): Promise<any[]>;
+    getProductById(id: number): Promise<any>;
+    createProduct(productData: CreateProductDto): Promise<any>;
+    updateProduct(id: number, productData: UpdateProductDto): Promise<any>;
+    updateProductStock(id: number, stockData: UpdateStockDto): Promise<any>;
+    remove(id: number): Promise<any>;
 }
 export {};

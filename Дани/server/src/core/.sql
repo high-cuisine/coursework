@@ -72,3 +72,54 @@ CREATE TABLE Users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP WITH TIME ZONE
 );
+
+-- Обновление 1.2: Добавление функционала покупок и архивации
+
+-- Статусы покупок
+CREATE TABLE PurchaseStatus (
+    status_id SERIAL PRIMARY KEY,
+    status_name VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- Покупки
+CREATE TABLE Purchase (
+    purchase_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    store_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL CHECK (quantity > 0),
+    total_amount DECIMAL(12, 2) NOT NULL CHECK (total_amount >= 0),
+    status_id INT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (store_id) REFERENCES Store(StoreID) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES Product(ProductID),
+    FOREIGN KEY (status_id) REFERENCES PurchaseStatus(status_id)
+);
+
+-- Архив покупок
+CREATE TABLE PurchaseArchive (
+    archive_id SERIAL PRIMARY KEY,
+    purchase_id INT NOT NULL,
+    user_id INT NOT NULL,
+    store_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    total_amount DECIMAL(12, 2) NOT NULL,
+    status_id INT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE,
+    archived_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (store_id) REFERENCES Store(StoreID),
+    FOREIGN KEY (product_id) REFERENCES Product(ProductID),
+    FOREIGN KEY (status_id) REFERENCES PurchaseStatus(status_id)
+);
+
+-- Вставка базовых статусов покупок
+INSERT INTO PurchaseStatus (status_name) VALUES 
+    ('pending'),      -- Ожидает подтверждения
+    ('approved'),     -- Подтверждено
+    ('rejected'),     -- Отклонено
+    ('completed'),    -- Завершено
+    ('cancelled');    -- Отменено

@@ -16,6 +16,8 @@ exports.SaleController = void 0;
 const common_1 = require("@nestjs/common");
 const sale_service_1 = require("./sale.service");
 const jwt_guard_1 = require("../auth/jwt.guard");
+const roles_decorator_1 = require("../../core/decorators/roles.decorator");
+const roles_enum_1 = require("../../core/types/roles.enum");
 class CreateSaleDto {
 }
 class UpdateSaleDto {
@@ -48,6 +50,7 @@ let SaleController = class SaleController {
 exports.SaleController = SaleController;
 __decorate([
     (0, common_1.Post)(),
+    (0, roles_decorator_1.Roles)(roles_enum_1.Role.USER, roles_enum_1.Role.MANAGER, roles_enum_1.Role.ADMIN),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [CreateSaleDto]),
@@ -55,12 +58,14 @@ __decorate([
 ], SaleController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, roles_decorator_1.Roles)(roles_enum_1.Role.MANAGER, roles_enum_1.Role.ADMIN),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], SaleController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, roles_decorator_1.Roles)(roles_enum_1.Role.USER, roles_enum_1.Role.MANAGER, roles_enum_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -68,6 +73,7 @@ __decorate([
 ], SaleController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Get)('store/:storeId/history'),
+    (0, roles_decorator_1.Roles)(roles_enum_1.Role.MANAGER, roles_enum_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('storeId')),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
@@ -76,6 +82,7 @@ __decorate([
 ], SaleController.prototype, "getSaleHistory", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, roles_decorator_1.Roles)(roles_enum_1.Role.MANAGER, roles_enum_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -84,6 +91,7 @@ __decorate([
 ], SaleController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, roles_decorator_1.Roles)(roles_enum_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),

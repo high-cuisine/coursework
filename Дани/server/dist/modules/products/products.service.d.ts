@@ -2,12 +2,23 @@ import { Pool } from 'pg';
 export declare class ProductsService {
     private readonly pool;
     constructor(pool: Pool);
-    create(data: {
+    getProducts(): Promise<any[]>;
+    getProductById(id: number): Promise<any>;
+    createProduct(data: {
         productname: string;
-        categoryid: number;
-        price: number;
         description: string;
+        price: number;
+        image_url: string;
+        categoryid: number;
     }): Promise<any>;
+    updateProduct(id: number, data: {
+        productname?: string;
+        description?: string;
+        price?: number;
+        image_url?: string;
+        categoryid?: number;
+    }): Promise<any>;
+    updateProductStock(productId: number, storeId: number, quantity: number): Promise<any>;
     findAll(): Promise<any[]>;
     findOne(id: number): Promise<any>;
     update(id: number, data: {

@@ -14,9 +14,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const roles = [
-  { value: 'admin', label: 'Administrator' },
-  { value: 'inspector', label: 'Inspector' },
-  { value: 'taxpayer', label: 'Taxpayer' },
+  { value: 'admin', label: 'Администратор' },
+  { value: 'inspector', label: 'Инспектор' },
+  { value: 'taxpayer', label: 'Налогоплательщик' },
 ];
 
 const Register: React.FC = () => {
@@ -34,7 +34,7 @@ const Register: React.FC = () => {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Пароли не совпадают');
       return;
     }
 
@@ -67,7 +67,7 @@ const Register: React.FC = () => {
           }}
         >
           <Typography component="h1" variant="h5">
-            Sign up
+            Регистрация
           </Typography>
           {error && (
             <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
@@ -80,7 +80,7 @@ const Register: React.FC = () => {
               required
               fullWidth
               id="name"
-              label="Full Name"
+              label="Полное имя"
               name="name"
               autoComplete="name"
               autoFocus
@@ -92,7 +92,7 @@ const Register: React.FC = () => {
               required
               fullWidth
               id="email"
-              label="Email Address"
+              label="Email адрес"
               name="email"
               autoComplete="email"
               value={email}
@@ -103,7 +103,7 @@ const Register: React.FC = () => {
               required
               fullWidth
               name="password"
-              label="Password"
+              label="Пароль"
               type="password"
               id="password"
               autoComplete="new-password"
@@ -115,7 +115,7 @@ const Register: React.FC = () => {
               required
               fullWidth
               name="confirmPassword"
-              label="Confirm Password"
+              label="Подтвердите пароль"
               type="password"
               id="confirmPassword"
               value={confirmPassword}
@@ -127,7 +127,7 @@ const Register: React.FC = () => {
               fullWidth
               select
               name="role"
-              label="Role"
+              label="Роль"
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
@@ -143,11 +143,11 @@ const Register: React.FC = () => {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign Up
+              Зарегистрироваться
             </Button>
             <Box sx={{ textAlign: 'center' }}>
               <Link href="/login" variant="body2">
-                {"Already have an account? Sign In"}
+                {"Уже есть аккаунт? Войти"}
               </Link>
             </Box>
           </Box>

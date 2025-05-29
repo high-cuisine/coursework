@@ -12,21 +12,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RolesGuard = void 0;
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
-const roles_decorator_1 = require("../decorators/roles.decorator");
+const roles_enum_1 = require("../types/roles.enum");
 let RolesGuard = class RolesGuard {
     constructor(reflector) {
         this.reflector = reflector;
     }
     canActivate(context) {
-        const requiredRoles = this.reflector.getAllAndOverride(roles_decorator_1.ROLES_KEY, [
+        const requiredRoles = this.reflector.getAllAndOverride(roles_enum_1.ROLES_KEY, [
             context.getHandler(),
             context.getClass(),
         ]);
         if (!requiredRoles) {
             return true;
         }
-        const { user } = context.switchToHttp().getRequest();
-        return requiredRoles.includes(user?.role);
+        const request = context.switchToHttp().getRequest();
+        const user = request.user;
+        if (!user) {
+            throw new common_1.UnauthorizedException('User not found in request');
+        }
+        if (!user.role) {
+            throw new common_1.UnauthorizedException('User role not found');
+        }
+        return requiredRoles.some((role) => user.role === role);
     }
 };
 exports.RolesGuard = RolesGuard;

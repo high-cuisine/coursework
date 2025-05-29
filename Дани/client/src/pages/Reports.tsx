@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -15,16 +15,55 @@ import {
   Card,
   CardContent,
   Divider,
+  Alert,
+  IconButton,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
+import { Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
 import { apiService } from '../services/api';
-import { SalesReport, InventoryReport, ProfitReport } from '../types';
+
+interface SalesReportItem {
+  date: string;
+  total_sales: number;
+  total_revenue: string | number;
+  status_name: string;
+  completed_sales: number;
+  completed_revenue: string | number;
+}
+
+interface InventoryItem {
+  productid: number;
+  productname: string;
+  price: number;
+  categoryname: string;
+  current_stock: number;
+  description?: string;
+  image_url?: string;
+  categoryid: number;
+}
+
+interface Store {
+  storeid: number;
+  storename: string;
+}
+
+interface StockEdit {
+  id: number;
+  value: number;
+  store_id: number;
+}
 
 export default function Reports() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [salesReport, setSalesReport] = useState<SalesReport | null>(null);
-  const [inventoryReport, setInventoryReport] = useState<InventoryReport | null>(null);
-  const [profitReport, setProfitReport] = useState<ProfitReport | null>(null);
+  const [salesReport, setSalesReport] = useState<SalesReportItem[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [editingStock, setEditingStock] = useState<StockEdit | null>(null);
+  const [stores, setStores] = useState<Store[]>([]);
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,47 +76,97 @@ export default function Reports() {
 
   const loadSalesReport = async () => {
     try {
+      setError(null);
       const data = await apiService.getSalesReport(startDate, endDate);
+      console.log('Sales report data:', data);
       setSalesReport(data);
     } catch (error) {
       console.error('Failed to load sales report:', error);
+      setError('Ошибка при загрузке отчета о продажах');
     }
   };
 
-  const loadInventoryReport = async () => {
+  const loadInventory = async () => {
     try {
-      const data = await apiService.getInventoryReport();
-      setInventoryReport(data);
+      setError(null);
+      const data = await apiService.getProducts();
+      console.log('Inventory data:', data);
+      setInventory(data);
     } catch (error) {
-      console.error('Failed to load inventory report:', error);
+      console.error('Failed to load inventory:', error);
+      setError('Ошибка при загрузке данных о запасах');
     }
   };
 
-  const loadProfitReport = async () => {
+  const loadStores = async () => {
     try {
-      const data = await apiService.getProfitReport(startDate, endDate);
-      setProfitReport(data);
+      const data = await apiService.getStores();
+      setStores(data);
     } catch (error) {
-      console.error('Failed to load profit report:', error);
+      console.error('Failed to load stores:', error);
     }
   };
+
+  const handleEditStock = (id: number, currentStock: number) => {
+    setEditingStock({ id, value: currentStock, store_id: stores[0]?.storeid || 1 });
+  };
+
+  const handleSaveStock = async () => {
+    if (!editingStock) return;
+
+    try {
+      setError(null);
+      await apiService.updateProductStock(
+        editingStock.id,
+        editingStock.store_id,
+        editingStock.value
+      );
+      await loadInventory();
+      setEditingStock(null);
+    } catch (error) {
+      console.error('Failed to update stock:', error);
+      setError('Ошибка при обновлении количества товара');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingStock(null);
+  };
+
+  const formatCurrency = (value: string | number | undefined | null): string => {
+    if (value === undefined || value === null) return '₽0.00';
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(numValue)) return '₽0.00';
+    return `₽${numValue.toFixed(2)}`;
+  };
+
+  useEffect(() => {
+    loadInventory();
+    loadStores();
+  }, []);
 
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
-        Reports
+        Отчеты
       </Typography>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <Box>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
-              Date Range
+              Диапазон дат
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
               <TextField
                 name="startDate"
-                label="Start Date"
+                label="Начальная дата"
                 type="date"
                 value={startDate}
                 onChange={handleDateChange}
@@ -85,7 +174,7 @@ export default function Reports() {
               />
               <TextField
                 name="endDate"
-                label="End Date"
+                label="Конечная дата"
                 type="date"
                 value={endDate}
                 onChange={handleDateChange}
@@ -99,87 +188,47 @@ export default function Reports() {
                 onClick={loadSalesReport}
                 disabled={!startDate || !endDate}
               >
-                Load Sales Report
+                Загрузить отчет о продажах
               </Button>
               <Button
                 variant="contained"
                 color="primary"
-                onClick={loadInventoryReport}
+                onClick={loadInventory}
               >
-                Load Inventory Report
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={loadProfitReport}
-                disabled={!startDate || !endDate}
-              >
-                Load Profit Report
+                Обновить данные о запасах
               </Button>
             </Box>
           </Paper>
         </Box>
 
-        {salesReport && (
+        {salesReport.length > 0 && (
           <Box>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Sales Report
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom>
-                  Total Sales: {salesReport.totalSales}
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom>
-                  Total Revenue: ${salesReport.totalRevenue.toFixed(2)}
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="h6" gutterBottom>
-                  Sales by Product
+                  Отчет о продажах
                 </Typography>
                 <TableContainer>
                   <Table>
                     <TableHead>
                       <TableRow>
-                        <TableCell>Product</TableCell>
-                        <TableCell align="right">Quantity</TableCell>
-                        <TableCell align="right">Revenue</TableCell>
+                        <TableCell>Дата</TableCell>
+                        <TableCell>Статус</TableCell>
+                        <TableCell align="right">Всего продаж</TableCell>
+                        <TableCell align="right">Общая выручка</TableCell>
+                        <TableCell align="right">Завершенные продажи</TableCell>
+                        <TableCell align="right">Выручка по завершенным</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {salesReport.salesByProduct.map((item) => (
-                        <TableRow key={item.productName}>
-                          <TableCell>{item.productName}</TableCell>
-                          <TableCell align="right">{item.quantity}</TableCell>
-                          <TableCell align="right">
-                            ${item.revenue.toFixed(2)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="h6" gutterBottom>
-                  Sales by Store
-                </Typography>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Store</TableCell>
-                        <TableCell align="right">Quantity</TableCell>
-                        <TableCell align="right">Revenue</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {salesReport.salesByStore.map((item) => (
-                        <TableRow key={item.storeName}>
-                          <TableCell>{item.storeName}</TableCell>
-                          <TableCell align="right">{item.quantity}</TableCell>
-                          <TableCell align="right">
-                            ${item.revenue.toFixed(2)}
-                          </TableCell>
+                      {salesReport.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{new Date(item.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{item.status_name}</TableCell>
+                          <TableCell align="right">{item.total_sales}</TableCell>
+                          <TableCell align="right">{formatCurrency(item.total_revenue)}</TableCell>
+                          <TableCell align="right">{item.completed_sales}</TableCell>
+                          <TableCell align="right">{formatCurrency(item.completed_revenue)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -190,110 +239,91 @@ export default function Reports() {
           </Box>
         )}
 
-        {inventoryReport && (
-          <Box>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Inventory Report
-                </Typography>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Product</TableCell>
-                        <TableCell>Category</TableCell>
-                        <TableCell align="right">Total Quantity</TableCell>
-                        <TableCell>Store Distribution</TableCell>
+        <Box>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Текущие запасы
+              </Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Товар</TableCell>
+                      <TableCell>Категория</TableCell>
+                      <TableCell align="right">Цена</TableCell>
+                      <TableCell align="right">Количество на складе</TableCell>
+                      <TableCell align="right">Действия</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {inventory.map((item) => (
+                      <TableRow key={item.productid}>
+                        <TableCell>{item.productname}</TableCell>
+                        <TableCell>{item.categoryname}</TableCell>
+                        <TableCell align="right">{formatCurrency(item.price)}</TableCell>
+                        <TableCell align="right">
+                          {editingStock?.id === item.productid ? (
+                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                              <FormControl sx={{ minWidth: 120 }}>
+                                <InputLabel>Магазин</InputLabel>
+                                <Select
+                                  value={editingStock.store_id}
+                                  onChange={(e) => setEditingStock({
+                                    ...editingStock,
+                                    store_id: Number(e.target.value)
+                                  })}
+                                  label="Магазин"
+                                >
+                                  {stores.map((store) => (
+                                    <MenuItem key={store.storeid} value={store.storeid}>
+                                      {store.storename}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              <TextField
+                                type="number"
+                                value={editingStock.value}
+                                onChange={(e) => setEditingStock({
+                                  ...editingStock,
+                                  value: Number(e.target.value)
+                                })}
+                                size="small"
+                                sx={{ width: '100px' }}
+                              />
+                            </Box>
+                          ) : (
+                            item.current_stock
+                          )}
+                        </TableCell>
+                        <TableCell align="right">
+                          {editingStock?.id === item.productid ? (
+                            <>
+                              <IconButton onClick={handleSaveStock} color="primary">
+                                <SaveIcon />
+                              </IconButton>
+                              <IconButton onClick={handleCancelEdit} color="error">
+                                <CancelIcon />
+                              </IconButton>
+                            </>
+                          ) : (
+                            <IconButton
+                              onClick={() => handleEditStock(item.productid, item.current_stock)}
+                              color="primary"
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          )}
+                        </TableCell>
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {inventoryReport.inventory.map((product) => (
-                        <TableRow key={product.productId}>
-                          <TableCell>{product.productname}</TableCell>
-                          <TableCell>{product.storename}</TableCell>
-                          <TableCell align="right">
-                            {product.quantity}
-                          </TableCell>
-                          <TableCell>
-                            {product?.stores && product.stores.map((store) => (
-                              <Typography key={store.storeId} variant="body2">
-                                {store.storeName}: {store.quantity}
-                              </Typography>
-                            ))}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Box>
-        )}
-
-        {profitReport && (
-          <Box>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Profit Report
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom>
-                  Total Profit: ${profitReport.totalProfit.toFixed(2)}
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="h6" gutterBottom>
-                  Profit by Product
-                </Typography>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Product</TableCell>
-                        <TableCell align="right">Profit</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {profitReport.profitByProduct.map((item) => (
-                        <TableRow key={item.productId}>
-                          <TableCell>{item.productName}</TableCell>
-                          <TableCell align="right">
-                            ${item.profit.toFixed(2)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="h6" gutterBottom>
-                  Profit by Store
-                </Typography>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Store</TableCell>
-                        <TableCell align="right">Profit</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {profitReport.profitByStore.map((item) => (
-                        <TableRow key={item.storeId}>
-                          <TableCell>{item.storeName}</TableCell>
-                          <TableCell align="right">
-                            ${item.profit.toFixed(2)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Box>
-        )}
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Box>
       </Box>
     </Container>
   );

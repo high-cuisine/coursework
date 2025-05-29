@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { SupplyService } from './supply.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
+import { Public } from '../../core/decorators/public.decorator';
 
 class CreateSupplyDto {
   storeId: number;
@@ -30,16 +31,19 @@ export class SupplyController {
     return this.supplyService.create(createSupplyDto);
   }
 
+  @Public()
   @Get()
   findAll() {
     return this.supplyService.findAll();
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.supplyService.findOne(+id);
   }
 
+  @Public()
   @Get('store/:storeId/history')
   getSupplyHistory(
     @Param('storeId') storeId: string,

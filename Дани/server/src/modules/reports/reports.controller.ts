@@ -1,7 +1,8 @@
-import { Controller, Delete, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Patch, Post, Req, Res, UseGuards, Query } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { Request, Response } from 'express'; 
 import { JwtAuthGuard } from '../auth/jwt.guard';
+import { Public } from '../../core/decorators/public.decorator';
 
 @Controller('reports')
 @UseGuards(JwtAuthGuard)
@@ -11,6 +12,7 @@ export class ReportsController {
         private readonly reportService: ReportsService
     ) {}
     
+    @Public()
     @Get('/')
     async getAllReports(
         @Req() req: Request,
@@ -21,6 +23,7 @@ export class ReportsController {
         res.status(200).json(response);
     }
 
+    @Public()
     @Get('/by-id/:id')
     async getById(
         @Req() req: Request,
@@ -75,5 +78,21 @@ export class ReportsController {
     @Get('inventory')
     async getInventoryReport() {
         return this.reportService.getInventoryReport();
+    }
+
+    @Get('sales')
+    async getSalesReport(
+        @Query('startDate') startDate: string,
+        @Query('endDate') endDate: string
+    ) {
+        return this.reportService.getSalesReport(startDate, endDate);
+    }
+
+    @Get('profit')
+    async getProfitReport(
+        @Query('startDate') startDate: string,
+        @Query('endDate') endDate: string
+    ) {
+        return this.reportService.getProfitReport(startDate, endDate);
     }
 }

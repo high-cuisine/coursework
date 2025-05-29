@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -14,6 +14,7 @@ import {
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { endpoints } from '../utils/api';
+import Filter from './Filter';
 
 interface Property {
   propertyid: number;
@@ -26,6 +27,7 @@ const Properties: React.FC = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [formData, setFormData] = useState<Partial<Property>>({});
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const queryClient = useQueryClient();
 
   const { data: properties, isLoading } = useQuery<Property[]>({
@@ -138,6 +140,31 @@ const Properties: React.FC = () => {
     },
   ];
 
+  const filterFields = [
+    { field: 'propertytype', label: 'Property Type' },
+    { field: 'taxpayerid', label: 'Taxpayer ID' },
+  ];
+
+  const handleFilterChange = (field: string, value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFilterReset = () => {
+    setFilters({});
+  };
+
+  const filteredProperties = useMemo(() => {
+    if (!properties) return [];
+    
+    return properties.filter(property => {
+      return Object.entries(filters).every(([field, value]) => {
+        if (!value) return true;
+        const fieldValue = String(property[field as keyof Property]).toLowerCase();
+        return fieldValue.includes(value.toLowerCase());
+      });
+    });
+  }, [properties, filters]);
+
   return (
     <Box sx={{ height: 600, width: '100%', p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
@@ -147,8 +174,15 @@ const Properties: React.FC = () => {
         </Button>
       </Box>
 
+      <Filter
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleFilterReset}
+        filterFields={filterFields}
+      />
+
       <DataGrid
-        rows={properties || []}
+        rows={filteredProperties}
         columns={columns}
         initialState={{
           pagination: {

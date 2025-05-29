@@ -11,73 +11,169 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var ProductsController_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductsController = void 0;
 const common_1 = require("@nestjs/common");
 const products_service_1 = require("./products.service");
 const jwt_guard_1 = require("../auth/jwt.guard");
+const roles_guard_1 = require("../auth/roles.guard");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const public_decorator_1 = require("../../core/decorators/public.decorator");
+const class_validator_1 = require("class-validator");
 class CreateProductDto {
 }
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateProductDto.prototype, "productname", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateProductDto.prototype, "description", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateProductDto.prototype, "price", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateProductDto.prototype, "image_url", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateProductDto.prototype, "categoryid", void 0);
 class UpdateProductDto {
 }
-let ProductsController = class ProductsController {
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateProductDto.prototype, "productname", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateProductDto.prototype, "description", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], UpdateProductDto.prototype, "price", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateProductDto.prototype, "image_url", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], UpdateProductDto.prototype, "categoryid", void 0);
+class UpdateStockDto {
+}
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], UpdateStockDto.prototype, "store_id", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], UpdateStockDto.prototype, "quantity", void 0);
+let ProductsController = ProductsController_1 = class ProductsController {
     constructor(productsService) {
         this.productsService = productsService;
+        this.logger = new common_1.Logger(ProductsController_1.name);
     }
-    create(date) {
-        console.log(date, 'dates');
-        return this.productsService.create(date);
+    async getProducts() {
+        return await this.productsService.getProducts();
     }
-    findAll() {
-        return this.productsService.findAll();
+    async getProductById(id) {
+        return await this.productsService.getProductById(id);
     }
-    findOne(id) {
-        return this.productsService.findOne(+id);
+    async createProduct(productData) {
+        return await this.productsService.createProduct(productData);
     }
-    update(id, updateProductDto) {
-        return this.productsService.update(+id, updateProductDto);
+    async updateProduct(id, productData) {
+        return await this.productsService.updateProduct(id, productData);
     }
-    remove(id) {
-        return this.productsService.remove(+id);
+    async updateProductStock(id, stockData) {
+        this.logger.debug(`Updating stock for product ${id} with data:`, stockData);
+        if (!stockData.store_id || !stockData.quantity) {
+            this.logger.error('Missing required fields:', { store_id: stockData.store_id, quantity: stockData.quantity });
+            throw new Error('store_id and quantity are required');
+        }
+        return await this.productsService.updateProductStock(id, stockData.store_id, stockData.quantity);
+    }
+    async remove(id) {
+        return await this.productsService.remove(id);
     }
 };
 exports.ProductsController = ProductsController;
 __decorate([
-    (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], ProductsController.prototype, "create", null);
-__decorate([
     (0, common_1.Get)(),
+    (0, public_decorator_1.Public)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], ProductsController.prototype, "findAll", null);
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "getProducts", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, public_decorator_1.Public)(),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], ProductsController.prototype, "findOne", null);
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "getProductById", null);
+__decorate([
+    (0, common_1.Post)(),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'manager'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [CreateProductDto]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "createProduct", null);
 __decorate([
     (0, common_1.Put)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'manager'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, UpdateProductDto]),
-    __metadata("design:returntype", void 0)
-], ProductsController.prototype, "update", null);
+    __metadata("design:paramtypes", [Number, UpdateProductDto]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "updateProduct", null);
+__decorate([
+    (0, common_1.Put)(':id/stock'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'manager'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, UpdateStockDto]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "updateProductStock", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "remove", null);
-exports.ProductsController = ProductsController = __decorate([
+exports.ProductsController = ProductsController = ProductsController_1 = __decorate([
     (0, common_1.Controller)('products'),
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [products_service_1.ProductsService])

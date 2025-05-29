@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -29,16 +29,28 @@ export class AuthService {
       const user = result.rows[0];
       
       if (!user) {
-        throw new UnauthorizedException('Failed to create user');
+        throw new InternalServerErrorException('Failed to create user');
       }
 
       return this.generateToken(user);
     } catch (error) {
+      console.error('Registration error:', error);
+      
       if (error.code === '23505') { // Unique violation
-        throw new UnauthorizedException('Username or email already exists');
+        if (error.constraint === 'users_username_key') {
+          throw new ConflictException('Username already exists');
+        }
+        if (error.constraint === 'users_email_key') {
+          throw new ConflictException('Email already exists');
+        }
+        throw new ConflictException('Username or email already exists');
       }
-      console.log(error);
-      throw new UnauthorizedException('Registration failed');
+      
+      if (error instanceof UnauthorizedException || error instanceof ConflictException) {
+        throw error;
+      }
+      
+      throw new InternalServerErrorException('Registration failed: ' + error.message);
     }
   }
 

@@ -16,6 +16,7 @@ exports.CategoryController = void 0;
 const common_1 = require("@nestjs/common");
 const category_service_1 = require("./category.service");
 const jwt_guard_1 = require("../auth/jwt.guard");
+const public_decorator_1 = require("../../core/decorators/public.decorator");
 class CreateCategoryDto {
 }
 class UpdateCategoryDto {
@@ -24,15 +25,15 @@ let CategoryController = class CategoryController {
     constructor(categoryService) {
         this.categoryService = categoryService;
     }
-    create(categoryName) {
-        console.log(categoryName);
-        return this.categoryService.create({ categoryName });
-    }
     findAll() {
         return this.categoryService.findAll();
     }
     findOne(id) {
         return this.categoryService.findOne(+id);
+    }
+    create(categoryName) {
+        console.log(categoryName);
+        return this.categoryService.create({ categoryName });
     }
     getProductsByCategory(id) {
         return this.categoryService.getProductsByCategory(+id);
@@ -48,25 +49,27 @@ let CategoryController = class CategoryController {
 };
 exports.CategoryController = CategoryController;
 __decorate([
-    (0, common_1.Post)('/'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], CategoryController.prototype, "create", null);
-__decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], CategoryController.prototype, "findAll", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], CategoryController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Post)('/'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CategoryController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(':id/products'),
     __param(0, (0, common_1.Param)('id')),

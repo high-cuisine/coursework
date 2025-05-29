@@ -7,12 +7,7 @@ const path_1 = require("path");
 const config_1 = require("./core/config");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
-    app.enableCors({
-        origin: config_1.config.server.frontendUrl,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true,
-    });
+    app.enableCors();
     app.useStaticAssets((0, path_1.join)(__dirname, '..', 'assets'), {
         prefix: '/assets'
     });
@@ -21,6 +16,7 @@ async function bootstrap() {
         transform: true,
     }));
     await app.listen(config_1.config.server.port);
+    console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

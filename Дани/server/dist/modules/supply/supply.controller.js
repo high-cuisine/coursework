@@ -16,6 +16,7 @@ exports.SupplyController = void 0;
 const common_1 = require("@nestjs/common");
 const supply_service_1 = require("./supply.service");
 const jwt_guard_1 = require("../auth/jwt.guard");
+const public_decorator_1 = require("../../core/decorators/public.decorator");
 class CreateSupplyDto {
 }
 class UpdateSupplyDto {
@@ -55,12 +56,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], SupplyController.prototype, "create", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], SupplyController.prototype, "findAll", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -68,6 +71,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], SupplyController.prototype, "findOne", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)('store/:storeId/history'),
     __param(0, (0, common_1.Param)('storeId')),
     __param(1, (0, common_1.Query)()),

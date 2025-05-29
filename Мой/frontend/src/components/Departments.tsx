@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -14,6 +14,7 @@ import {
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { endpoints } from '../utils/api';
+import Filter from './Filter';
 
 interface Department {
   departmentid: number;
@@ -28,6 +29,7 @@ const Departments: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const [formData, setFormData] = useState<Partial<Department>>({});
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const queryClient = useQueryClient();
 
   const { data: departments, isLoading } = useQuery<Department[]>({
@@ -48,7 +50,7 @@ const Departments: React.FC = () => {
       handleClose();
     },
     onError: () => {
-      setError('Failed to create department');
+      setError('Не удалось создать отдел');
     },
   });
 
@@ -65,7 +67,7 @@ const Departments: React.FC = () => {
       handleClose();
     },
     onError: () => {
-      setError('Failed to update department');
+      setError('Не удалось обновить отдел');
     },
   });
 
@@ -77,7 +79,7 @@ const Departments: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['departments'] });
     },
     onError: () => {
-      setError('Failed to delete department');
+      setError('Не удалось удалить отдел');
     },
   });
 
@@ -110,13 +112,13 @@ const Departments: React.FC = () => {
 
   const columns: GridColDef[] = [
     { field: 'departmentid', headerName: 'ID', width: 70 },
-    { field: 'name', headerName: 'Name', width: 200 },
-    { field: 'address', headerName: 'Address', width: 200 },
-    { field: 'phone', headerName: 'Phone', width: 130 },
-    { field: 'headinspectorid', headerName: 'Head Inspector ID', width: 130 },
+    { field: 'name', headerName: 'Название', width: 200 },
+    { field: 'address', headerName: 'Адрес', width: 200 },
+    { field: 'phone', headerName: 'Телефон', width: 130 },
+    { field: 'headinspectorid', headerName: 'ID руководителя', width: 130 },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: 'Действия',
       width: 200,
       renderCell: (params) => (
         <Box>
@@ -127,7 +129,7 @@ const Departments: React.FC = () => {
             onClick={() => handleOpen(params.row)}
             sx={{ mr: 1 }}
           >
-            Edit
+            Изменить
           </Button>
           <Button
             variant="contained"
@@ -135,24 +137,58 @@ const Departments: React.FC = () => {
             size="small"
             onClick={() => deleteMutation.mutate(params.row.departmentid)}
           >
-            Delete
+            Удалить
           </Button>
         </Box>
       ),
     },
   ];
 
+  const filterFields = [
+    { field: 'name', label: 'Название' },
+    { field: 'address', label: 'Адрес' },
+    { field: 'phone', label: 'Телефон' },
+    { field: 'headinspectorid', label: 'ID руководителя' },
+  ];
+
+  const handleFilterChange = (field: string, value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFilterReset = () => {
+    setFilters({});
+  };
+
+  const filteredDepartments = useMemo(() => {
+    if (!departments) return [];
+    
+    return departments.filter(department => {
+      return Object.entries(filters).every(([field, value]) => {
+        if (!value) return true;
+        const fieldValue = String(department[field as keyof Department]).toLowerCase();
+        return fieldValue.includes(value.toLowerCase());
+      });
+    });
+  }, [departments, filters]);
+
   return (
     <Box sx={{ height: 600, width: '100%', p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h5">Departments</Typography>
+        <Typography variant="h5">Отделы</Typography>
         <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-          Add Department
+          Добавить отдел
         </Button>
       </Box>
 
+      <Filter
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleFilterReset}
+        filterFields={filterFields}
+      />
+
       <DataGrid
-        rows={departments || []}
+        rows={filteredDepartments}
         columns={columns}
         initialState={{
           pagination: {
@@ -168,13 +204,13 @@ const Departments: React.FC = () => {
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>
-          {selectedDepartment ? 'Edit Department' : 'Add New Department'}
+          {selectedDepartment ? 'Редактировать отдел' : 'Добавить отдел'}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             <TextField
               fullWidth
-              label="Name"
+              label="Название"
               value={formData.name || ''}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               margin="normal"
@@ -182,7 +218,7 @@ const Departments: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Address"
+              label="Адрес"
               value={formData.address || ''}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               margin="normal"
@@ -190,7 +226,7 @@ const Departments: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Phone"
+              label="Телефон"
               value={formData.phone || ''}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               margin="normal"
@@ -198,7 +234,7 @@ const Departments: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Head Inspector ID"
+              label="ID руководителя"
               type="number"
               value={formData.headinspectorid || ''}
               onChange={(e) => setFormData({ ...formData, headinspectorid: parseInt(e.target.value) || null })}
@@ -206,9 +242,9 @@ const Departments: React.FC = () => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleClose}>Отмена</Button>
             <Button type="submit" variant="contained" color="primary">
-              {selectedDepartment ? 'Update' : 'Create'}
+              {selectedDepartment ? 'Обновить' : 'Создать'}
             </Button>
           </DialogActions>
         </form>

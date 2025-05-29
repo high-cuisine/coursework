@@ -8,7 +8,7 @@ export declare class ReportsController {
     createReport(req: Request, res: Response): Promise<void>;
     deleteReport(req: Request, res: Response): Promise<void>;
     updateReport(req: Request, res: Response): Promise<void>;
-    getInventoryReport(): Promise<{
-        inventory: any[];
-    }>;
+    getInventoryReport(): Promise<any[]>;
+    getSalesReport(startDate: string, endDate: string): Promise<any[]>;
+    getProfitReport(startDate: string, endDate: string): Promise<any[]>;
 }

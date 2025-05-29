@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -18,6 +18,7 @@ import {
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { endpoints } from '../utils/api';
+import Filter from './Filter';
 
 interface Taxpayer {
   taxpayerid: number;
@@ -41,6 +42,7 @@ const Taxpayers: React.FC = () => {
   const [selectedTaxpayer, setSelectedTaxpayer] = useState<Taxpayer | null>(null);
   const [formData, setFormData] = useState<Partial<Taxpayer>>({});
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const queryClient = useQueryClient();
 
   const { data: taxpayers, isLoading } = useQuery<Taxpayer[]>({
@@ -69,7 +71,7 @@ const Taxpayers: React.FC = () => {
       handleClose();
     },
     onError: () => {
-      setError('Failed to create taxpayer');
+      setError('Не удалось создать налогоплательщика');
     },
   });
 
@@ -86,7 +88,7 @@ const Taxpayers: React.FC = () => {
       handleClose();
     },
     onError: () => {
-      setError('Failed to update taxpayer');
+      setError('Не удалось обновить налогоплательщика');
     },
   });
 
@@ -98,7 +100,7 @@ const Taxpayers: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['taxpayers'] });
     },
     onError: () => {
-      setError('Failed to delete taxpayer');
+      setError('Не удалось удалить налогоплательщика');
     },
   });
 
@@ -131,17 +133,17 @@ const Taxpayers: React.FC = () => {
 
   const columns: GridColDef[] = [
     { field: 'taxpayerid', headerName: 'ID', width: 70 },
-    { field: 'type', headerName: 'Type', width: 130 },
-    { field: 'fullname', headerName: 'Full Name', width: 200 },
-    { field: 'taxid', headerName: 'Tax ID', width: 130 },
-    { field: 'registrationaddress', headerName: 'Address', width: 200 },
-    { field: 'phone', headerName: 'Phone', width: 130 },
+    { field: 'type', headerName: 'Тип', width: 130 },
+    { field: 'fullname', headerName: 'Полное имя', width: 200 },
+    { field: 'taxid', headerName: 'ИНН', width: 130 },
+    { field: 'registrationaddress', headerName: 'Адрес', width: 200 },
+    { field: 'phone', headerName: 'Телефон', width: 130 },
     { field: 'email', headerName: 'Email', width: 200 },
-    { field: 'registrationdate', headerName: 'Registration Date', width: 130 },
-    { field: 'departmentid', headerName: 'Department ID', width: 130 },
+    { field: 'registrationdate', headerName: 'Дата регистрации', width: 130 },
+    { field: 'departmentid', headerName: 'ID отдела', width: 130 },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: 'Действия',
       width: 200,
       renderCell: (params) => (
         <Box>
@@ -152,7 +154,7 @@ const Taxpayers: React.FC = () => {
             onClick={() => handleOpen(params.row)}
             sx={{ mr: 1 }}
           >
-            Edit
+            Изменить
           </Button>
           <Button
             variant="contained"
@@ -160,24 +162,58 @@ const Taxpayers: React.FC = () => {
             size="small"
             onClick={() => deleteMutation.mutate(params.row.taxpayerid)}
           >
-            Delete
+            Удалить
           </Button>
         </Box>
       ),
     },
   ];
 
+  const filterFields = [
+    { field: 'fullname', label: 'Полное имя' },
+    { field: 'taxid', label: 'ИНН' },
+    { field: 'type', label: 'Тип' },
+    { field: 'email', label: 'Email' },
+  ];
+
+  const handleFilterChange = (field: string, value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFilterReset = () => {
+    setFilters({});
+  };
+
+  const filteredTaxpayers = useMemo(() => {
+    if (!taxpayers) return [];
+    
+    return taxpayers.filter(taxpayer => {
+      return Object.entries(filters).every(([field, value]) => {
+        if (!value) return true;
+        const fieldValue = String(taxpayer[field as keyof Taxpayer]).toLowerCase();
+        return fieldValue.includes(value.toLowerCase());
+      });
+    });
+  }, [taxpayers, filters]);
+
   return (
     <Box sx={{ height: 600, width: '100%', p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h5">Taxpayers</Typography>
+        <Typography variant="h5">Налогоплательщики</Typography>
         <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-          Add Taxpayer
+          Добавить налогоплательщика
         </Button>
       </Box>
 
+      <Filter
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleFilterReset}
+        filterFields={filterFields}
+      />
+
       <DataGrid
-        rows={taxpayers || []}
+        rows={filteredTaxpayers}
         columns={columns}
         initialState={{
           pagination: {
@@ -193,25 +229,25 @@ const Taxpayers: React.FC = () => {
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {selectedTaxpayer ? 'Edit Taxpayer' : 'Add New Taxpayer'}
+          {selectedTaxpayer ? 'Редактировать налогоплательщика' : 'Добавить налогоплательщика'}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             <FormControl fullWidth margin="normal">
-              <InputLabel>Type</InputLabel>
+              <InputLabel>Тип</InputLabel>
               <Select
                 value={formData.type || ''}
-                label="Type"
+                label="Тип"
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                 required
               >
-                <MenuItem value="individual">Individual</MenuItem>
-                <MenuItem value="company">Company</MenuItem>
+                <MenuItem value="individual">Физическое лицо</MenuItem>
+                <MenuItem value="company">Компания</MenuItem>
               </Select>
             </FormControl>
             <TextField
               fullWidth
-              label="Full Name"
+              label="Полное имя"
               value={formData.fullname || ''}
               onChange={(e) => setFormData({ ...formData, fullname: e.target.value })}
               margin="normal"
@@ -219,7 +255,7 @@ const Taxpayers: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Tax ID"
+              label="ИНН"
               value={formData.taxid || ''}
               onChange={(e) => setFormData({ ...formData, taxid: e.target.value })}
               margin="normal"
@@ -227,7 +263,7 @@ const Taxpayers: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Registration Address"
+              label="Адрес"
               value={formData.registrationaddress || ''}
               onChange={(e) => setFormData({ ...formData, registrationaddress: e.target.value })}
               margin="normal"
@@ -235,7 +271,7 @@ const Taxpayers: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Phone"
+              label="Телефон"
               value={formData.phone || ''}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               margin="normal"
@@ -252,7 +288,7 @@ const Taxpayers: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Registration Date"
+              label="Дата регистрации"
               type="date"
               value={formData.registrationdate || ''}
               onChange={(e) => setFormData({ ...formData, registrationdate: e.target.value })}
@@ -261,10 +297,10 @@ const Taxpayers: React.FC = () => {
               InputLabelProps={{ shrink: true }}
             />
             <FormControl fullWidth margin="normal">
-              <InputLabel>Department</InputLabel>
+              <InputLabel>Отдел</InputLabel>
               <Select
                 value={formData.departmentid || ''}
-                label="Department"
+                label="Отдел"
                 onChange={(e) => setFormData({ ...formData, departmentid: Number(e.target.value) })}
                 required
               >
@@ -277,9 +313,9 @@ const Taxpayers: React.FC = () => {
             </FormControl>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleClose}>Отмена</Button>
             <Button type="submit" variant="contained" color="primary">
-              {selectedTaxpayer ? 'Update' : 'Create'}
+              {selectedTaxpayer ? 'Обновить' : 'Создать'}
             </Button>
           </DialogActions>
         </form>

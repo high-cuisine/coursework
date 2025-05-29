@@ -45,6 +45,7 @@ export default function Supplies() {
   const loadSupplies = async () => {
     try {
       const data = await apiService.getSupplies();
+      console.log('Loaded supplies:', data);
       setSupplies(data);
     } catch (error) {
       console.error('Error loading supplies:', error);
@@ -113,11 +114,13 @@ export default function Supplies() {
     e.preventDefault();
     try {
       const supplyData = {
-        ...formData,
         storeid: parseInt(formData.storeid),
         productid: parseInt(formData.productid),
         quantity: parseInt(formData.quantity),
+        supplydate: formData.supplydate
       };
+
+      console.log('Submitting supply data:', supplyData); // Для отладки
 
       if (editingSupply) {
         await apiService.updateSupply(editingSupply.supplyid, supplyData);
@@ -125,7 +128,7 @@ export default function Supplies() {
         await apiService.createSupply(supplyData);
       }
       handleClose();
-      loadSupplies();
+      await loadSupplies(); // Перезагружаем данные после изменения
     } catch (error) {
       console.error('Error saving supply:', error);
     }
@@ -147,10 +150,10 @@ export default function Supplies() {
       <Box sx={{ my: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h4" component="h1">
-            Supplies
+            Поставки
           </Typography>
           <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-            Add Supply
+            Добавить поставку
           </Button>
         </Box>
 
@@ -158,20 +161,28 @@ export default function Supplies() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Product</TableCell>
-                <TableCell>Store</TableCell>
-                <TableCell>Quantity</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell>ID</TableCell>
+                <TableCell>Товар</TableCell>
+                <TableCell>Магазин</TableCell>
+                <TableCell>Количество</TableCell>
+                <TableCell>Дата поставки</TableCell>
+                <TableCell>Действия</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {supplies.map((supply) => (
-                <TableRow key={supply.supplyid}>
+                <TableRow key={`supply-${supply.supplyid}`}>
+                  <TableCell>{supply.supplyid}</TableCell>
                   <TableCell>{supply.productname}</TableCell>
                   <TableCell>{supply.storename}</TableCell>
                   <TableCell>{supply.quantity}</TableCell>
-                  <TableCell>{new Date(supply.supplydate).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    {supply.supplydate ? new Date(supply.supplydate).toLocaleDateString('ru-RU', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit'
+                    }) : 'Нет даты'}
+                  </TableCell>
                   <TableCell>
                     <IconButton onClick={() => handleOpen(supply)} color="primary">
                       <EditIcon />
@@ -188,7 +199,7 @@ export default function Supplies() {
 
         <Dialog open={open} onClose={handleClose}>
           <DialogTitle>
-            {editingSupply ? 'Edit Supply' : 'Add Supply'}
+            {editingSupply ? 'Редактировать поставку' : 'Добавить поставку'}
           </DialogTitle>
           <DialogContent>
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
@@ -197,7 +208,7 @@ export default function Supplies() {
                 required
                 fullWidth
                 select
-                label="Product"
+                label="Товар"
                 name="productid"
                 value={formData.productid}
                 onChange={handleChange}
@@ -213,7 +224,7 @@ export default function Supplies() {
                 required
                 fullWidth
                 select
-                label="Store"
+                label="Магазин"
                 name="storeid"
                 value={formData.storeid}
                 onChange={handleChange}
@@ -228,7 +239,7 @@ export default function Supplies() {
                 margin="normal"
                 required
                 fullWidth
-                label="Quantity"
+                label="Количество"
                 name="quantity"
                 type="number"
                 value={formData.quantity}
@@ -238,7 +249,7 @@ export default function Supplies() {
                 margin="normal"
                 required
                 fullWidth
-                label="Supply Date"
+                label="Дата поставки"
                 name="supplydate"
                 type="date"
                 value={formData.supplydate}
@@ -250,9 +261,9 @@ export default function Supplies() {
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleClose}>Отмена</Button>
             <Button onClick={handleSubmit} variant="contained" color="primary">
-              {editingSupply ? 'Save' : 'Add'}
+              {editingSupply ? 'Сохранить' : 'Добавить'}
             </Button>
           </DialogActions>
         </Dialog>

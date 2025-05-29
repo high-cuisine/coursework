@@ -52,7 +52,7 @@ const Login: React.FC = () => {
           }}
         >
           <Typography component="h1" variant="h5">
-            Sign in
+            Вход в систему
           </Typography>
           {error && (
             <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
@@ -65,7 +65,7 @@ const Login: React.FC = () => {
               required
               fullWidth
               id="email"
-              label="Email Address"
+              label="Email адрес"
               name="email"
               autoComplete="email"
               autoFocus
@@ -77,7 +77,7 @@ const Login: React.FC = () => {
               required
               fullWidth
               name="password"
-              label="Password"
+              label="Пароль"
               type="password"
               id="password"
               autoComplete="current-password"
@@ -90,11 +90,11 @@ const Login: React.FC = () => {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              Войти
             </Button>
             <Box sx={{ textAlign: 'center' }}>
               <Link href="/register" variant="body2">
-                {"Don't have an account? Sign Up"}
+                {"Нет аккаунта? Зарегистрироваться"}
               </Link>
             </Box>
           </Box>

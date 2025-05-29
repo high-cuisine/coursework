@@ -33,16 +33,25 @@ let AuthService = class AuthService {
             const result = await this.pool.query(query, [username, email, hashedPassword, role]);
             const user = result.rows[0];
             if (!user) {
-                throw new common_1.UnauthorizedException('Failed to create user');
+                throw new common_1.InternalServerErrorException('Failed to create user');
             }
             return this.generateToken(user);
         }
         catch (error) {
+            console.error('Registration error:', error);
             if (error.code === '23505') {
-                throw new common_1.UnauthorizedException('Username or email already exists');
+                if (error.constraint === 'users_username_key') {
+                    throw new common_1.ConflictException('Username already exists');
+                }
+                if (error.constraint === 'users_email_key') {
+                    throw new common_1.ConflictException('Email already exists');
+                }
+                throw new common_1.ConflictException('Username or email already exists');
             }
-            console.log(error);
-            throw new common_1.UnauthorizedException('Registration failed');
+            if (error instanceof common_1.UnauthorizedException || error instanceof common_1.ConflictException) {
+                throw error;
+            }
+            throw new common_1.InternalServerErrorException('Registration failed: ' + error.message);
         }
     }
     async login(username, password) {

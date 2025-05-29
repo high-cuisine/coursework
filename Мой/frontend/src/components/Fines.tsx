@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -14,6 +14,7 @@ import {
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { endpoints } from '../utils/api';
+import Filter from './Filter';
 
 interface Fine {
   fineid: number;
@@ -30,6 +31,7 @@ const Fines: React.FC = () => {
   const [selectedFine, setSelectedFine] = useState<Fine | null>(null);
   const [formData, setFormData] = useState<Partial<Fine>>({});
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const queryClient = useQueryClient();
 
   const { data: fines, isLoading } = useQuery<Fine[]>({
@@ -50,7 +52,7 @@ const Fines: React.FC = () => {
       handleClose();
     },
     onError: () => {
-      setError('Failed to create fine');
+      setError('Не удалось создать штраф');
     },
   });
 
@@ -64,7 +66,7 @@ const Fines: React.FC = () => {
       handleClose();
     },
     onError: () => {
-      setError('Failed to update fine');
+      setError('Не удалось обновить штраф');
     },
   });
 
@@ -76,7 +78,7 @@ const Fines: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['fines'] });
     },
     onError: () => {
-      setError('Failed to delete fine');
+      setError('Не удалось удалить штраф');
     },
   });
 
@@ -109,15 +111,15 @@ const Fines: React.FC = () => {
 
   const columns: GridColDef[] = [
     { field: 'fineid', headerName: 'ID', width: 70 },
-    { field: 'fineamount', headerName: 'Amount', width: 130 },
-    { field: 'chargedate', headerName: 'Charge Date', width: 130 },
-    { field: 'paymentdeadline', headerName: 'Payment Deadline', width: 130 },
-    { field: 'paymentstatus', headerName: 'Payment Status', width: 130 },
-    { field: 'paymentdate', headerName: 'Payment Date', width: 130 },
-    { field: 'violationid', headerName: 'Violation ID', width: 130 },
+    { field: 'fineamount', headerName: 'Сумма', width: 130 },
+    { field: 'chargedate', headerName: 'Дата начисления', width: 130 },
+    { field: 'paymentdeadline', headerName: 'Срок оплаты', width: 130 },
+    { field: 'paymentstatus', headerName: 'Статус оплаты', width: 130 },
+    { field: 'paymentdate', headerName: 'Дата оплаты', width: 130 },
+    { field: 'violationid', headerName: 'ID нарушения', width: 130 },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: 'Действия',
       width: 200,
       renderCell: (params) => (
         <Box>
@@ -128,7 +130,7 @@ const Fines: React.FC = () => {
             onClick={() => handleOpen(params.row)}
             sx={{ mr: 1 }}
           >
-            Edit
+            Изменить
           </Button>
           <Button
             variant="contained"
@@ -136,24 +138,58 @@ const Fines: React.FC = () => {
             size="small"
             onClick={() => deleteMutation.mutate(params.row.fineid)}
           >
-            Delete
+            Удалить
           </Button>
         </Box>
       ),
     },
   ];
 
+  const filterFields = [
+    { field: 'fineamount', label: 'Сумма' },
+    { field: 'paymentstatus', label: 'Статус оплаты' },
+    { field: 'chargedate', label: 'Дата начисления' },
+    { field: 'paymentdeadline', label: 'Срок оплаты' },
+  ];
+
+  const handleFilterChange = (field: string, value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFilterReset = () => {
+    setFilters({});
+  };
+
+  const filteredFines = useMemo(() => {
+    if (!fines) return [];
+    
+    return fines.filter(fine => {
+      return Object.entries(filters).every(([field, value]) => {
+        if (!value) return true;
+        const fieldValue = String(fine[field as keyof Fine]).toLowerCase();
+        return fieldValue.includes(value.toLowerCase());
+      });
+    });
+  }, [fines, filters]);
+
   return (
     <Box sx={{ height: 600, width: '100%', p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h5">Fines</Typography>
+        <Typography variant="h5">Штрафы</Typography>
         <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-          Add Fine
+          Добавить штраф
         </Button>
       </Box>
 
+      <Filter
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleFilterReset}
+        filterFields={filterFields}
+      />
+
       <DataGrid
-        rows={fines || []}
+        rows={filteredFines}
         columns={columns}
         initialState={{
           pagination: {
@@ -169,13 +205,13 @@ const Fines: React.FC = () => {
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>
-          {selectedFine ? 'Edit Fine' : 'Add New Fine'}
+          {selectedFine ? 'Редактировать штраф' : 'Добавить штраф'}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             <TextField
               fullWidth
-              label="Fine Amount"
+              label="Сумма штрафа"
               type="number"
               value={formData.fineamount || ''}
               onChange={(e) => setFormData({ ...formData, fineamount: parseFloat(e.target.value) })}
@@ -184,7 +220,7 @@ const Fines: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Charge Date"
+              label="Дата начисления"
               type="date"
               value={formData.chargedate || ''}
               onChange={(e) => setFormData({ ...formData, chargedate: e.target.value })}
@@ -194,7 +230,7 @@ const Fines: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Payment Deadline"
+              label="Срок оплаты"
               type="date"
               value={formData.paymentdeadline || ''}
               onChange={(e) => setFormData({ ...formData, paymentdeadline: e.target.value })}
@@ -204,7 +240,7 @@ const Fines: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Payment Status"
+              label="Статус оплаты"
               value={formData.paymentstatus || ''}
               onChange={(e) => setFormData({ ...formData, paymentstatus: e.target.value })}
               margin="normal"
@@ -212,27 +248,27 @@ const Fines: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Payment Date"
+              label="Дата оплаты"
               type="date"
               value={formData.paymentdate || ''}
-              onChange={(e) => setFormData({ ...formData, paymentdate: e.target.value || null })}
+              onChange={(e) => setFormData({ ...formData, paymentdate: e.target.value })}
               margin="normal"
               InputLabelProps={{ shrink: true }}
             />
             <TextField
               fullWidth
-              label="Violation ID"
+              label="ID нарушения"
               type="number"
               value={formData.violationid || ''}
-              onChange={(e) => setFormData({ ...formData, violationid: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, violationid: Number(e.target.value) })}
               margin="normal"
               required
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleClose}>Отмена</Button>
             <Button type="submit" variant="contained" color="primary">
-              {selectedFine ? 'Update' : 'Create'}
+              {selectedFine ? 'Обновить' : 'Создать'}
             </Button>
           </DialogActions>
         </form>

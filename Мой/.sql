@@ -114,3 +114,47 @@ ALTER TABLE Property
 
 -- Индекс для быстрого поиска по TaxID в Taxpayer
 CREATE INDEX idx_taxpayer_taxid ON Taxpayer(TaxID);
+
+
+-- Удаление ограничений (если они уже есть)
+ALTER TABLE Department DROP CONSTRAINT IF EXISTS fk_headinspector;
+ALTER TABLE Inspector DROP CONSTRAINT IF EXISTS fk_department;
+ALTER TABLE Taxpayer DROP CONSTRAINT IF EXISTS fk_taxpayer_department;
+ALTER TABLE Violation DROP CONSTRAINT IF EXISTS fk_violation_taxpayer;
+ALTER TABLE Violation DROP CONSTRAINT IF EXISTS fk_violation_tax;
+ALTER TABLE Violation DROP CONSTRAINT IF EXISTS fk_violation_inspector;
+ALTER TABLE Fine DROP CONSTRAINT IF EXISTS fk_fine_violation;
+ALTER TABLE Property DROP CONSTRAINT IF EXISTS fk_property_taxpayer;
+
+-- Добавление новых ограничений с ON DELETE CASCADE
+ALTER TABLE Department
+  ADD CONSTRAINT fk_headinspector FOREIGN KEY (HeadInspectorID)
+  REFERENCES Inspector(InspectorID) ON DELETE SET NULL;
+
+ALTER TABLE Inspector
+  ADD CONSTRAINT fk_department FOREIGN KEY (DepartmentID)
+  REFERENCES Department(DepartmentID) ON DELETE SET NULL;
+
+ALTER TABLE Taxpayer
+  ADD CONSTRAINT fk_taxpayer_department FOREIGN KEY (DepartmentID)
+  REFERENCES Department(DepartmentID) ON DELETE CASCADE;
+
+ALTER TABLE Violation
+  ADD CONSTRAINT fk_violation_taxpayer FOREIGN KEY (TaxpayerID)
+  REFERENCES Taxpayer(TaxpayerID) ON DELETE CASCADE;
+
+ALTER TABLE Violation
+  ADD CONSTRAINT fk_violation_tax FOREIGN KEY (TaxID)
+  REFERENCES Tax(TaxID) ON DELETE CASCADE;
+
+ALTER TABLE Violation
+  ADD CONSTRAINT fk_violation_inspector FOREIGN KEY (InspectorID)
+  REFERENCES Inspector(InspectorID) ON DELETE CASCADE;
+
+ALTER TABLE Fine
+  ADD CONSTRAINT fk_fine_violation FOREIGN KEY (ViolationID)
+  REFERENCES Violation(ViolationID) ON DELETE CASCADE;
+
+ALTER TABLE Property
+  ADD CONSTRAINT fk_property_taxpayer FOREIGN KEY (TaxpayerID)
+  REFERENCES Taxpayer(TaxpayerID) ON DELETE CASCADE;

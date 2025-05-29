@@ -16,6 +16,7 @@ exports.ReportsController = void 0;
 const common_1 = require("@nestjs/common");
 const reports_service_1 = require("./reports.service");
 const jwt_guard_1 = require("../auth/jwt.guard");
+const public_decorator_1 = require("../../core/decorators/public.decorator");
 let ReportsController = class ReportsController {
     constructor(reportService) {
         this.reportService = reportService;
@@ -49,9 +50,16 @@ let ReportsController = class ReportsController {
     async getInventoryReport() {
         return this.reportService.getInventoryReport();
     }
+    async getSalesReport(startDate, endDate) {
+        return this.reportService.getSalesReport(startDate, endDate);
+    }
+    async getProfitReport(startDate, endDate) {
+        return this.reportService.getProfitReport(startDate, endDate);
+    }
 };
 exports.ReportsController = ReportsController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)('/'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
@@ -60,6 +68,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ReportsController.prototype, "getAllReports", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)('/by-id/:id'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
@@ -97,6 +106,22 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ReportsController.prototype, "getInventoryReport", null);
+__decorate([
+    (0, common_1.Get)('sales'),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "getSalesReport", null);
+__decorate([
+    (0, common_1.Get)('profit'),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], ReportsController.prototype, "getProfitReport", null);
 exports.ReportsController = ReportsController = __decorate([
     (0, common_1.Controller)('reports'),
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard),

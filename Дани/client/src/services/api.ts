@@ -1,5 +1,5 @@
 import api from '../interceptors/auth.interceptor';
-import { LoginDto, RegisterDto, Product, Category, Store, Supply, Sale } from '../types';
+import { LoginDto, RegisterDto, Product, Category, Store, Supply, Sale, Report } from '../types';
 
 export const apiService = {
   // Auth
@@ -29,6 +29,11 @@ export const apiService = {
 
   updateProduct: async (id: number, data: Partial<Product>) => {
     const response = await api.put(`/products/${id}`, data);
+    return response.data;
+  },
+
+  updateProductStock: async (productId: number, storeId: number, quantity: number) => {
+    const response = await api.put(`/products/${productId}/stock`, { store_id: storeId, quantity });
     return response.data;
   },
 
@@ -122,10 +127,29 @@ export const apiService = {
   },
 
   // Reports
+  getReports: async () => {
+    const response = await api.get('/reports');
+    return response.data;
+  },
+
+  createReport: async (data: Partial<Report>) => {
+    const response = await api.post('/reports', data);
+    return response.data;
+  },
+
+  updateReport: async (id: number, data: Partial<Report>) => {
+    const response = await api.put(`/reports/${id}`, data);
+    return response.data;
+  },
+
+  deleteReport: async (id: number) => {
+    const response = await api.delete(`/reports/${id}`);
+    return response.data;
+  },
+
+  // Additional report endpoints
   getSalesReport: async (startDate: string, endDate: string) => {
-    const response = await api.get('/reports/sales', {
-      params: { startDate, endDate }
-    });
+    const response = await api.get(`/reports/sales?startDate=${startDate}&endDate=${endDate}`);
     return response.data;
   },
 
@@ -135,9 +159,33 @@ export const apiService = {
   },
 
   getProfitReport: async (startDate: string, endDate: string) => {
-    const response = await api.get('/reports/profit', {
-      params: { startDate, endDate }
-    });
+    const response = await api.get(`/reports/profit?startDate=${startDate}&endDate=${endDate}`);
+    return response.data;
+  },
+
+  // Purchases
+  getPurchases: async () => {
+    const response = await api.get('/purchases');
+    return response.data;
+  },
+
+  createPurchase: async (data: { user_id: number; store_id: number; product_id: number; quantity: number; total_amount: number }) => {
+    const response = await api.post('/purchases', data);
+    return response.data;
+  },
+
+  getPurchaseStatuses: async () => {
+    const response = await api.get('/purchases/statuses');
+    return response.data;
+  },
+
+  updatePurchaseStatus: async (id: number, statusId: number) => {
+    const response = await api.put(`/purchases/${id}/status`, { statusId });
+    return response.data;
+  },
+
+  archivePurchase: async (id: number) => {
+    const response = await api.put(`/purchases/${id}/archive`);
     return response.data;
   },
 }; 

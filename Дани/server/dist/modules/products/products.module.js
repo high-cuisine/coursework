@@ -8,34 +8,25 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductsModule = void 0;
 const common_1 = require("@nestjs/common");
-const products_service_1 = require("./products.service");
 const products_controller_1 = require("./products.controller");
-const pg_1 = require("pg");
-const database_config_1 = require("../../core/database.config");
+const products_service_1 = require("./products.service");
+const database_module_1 = require("../../database/database.module");
 const jwt_1 = require("@nestjs/jwt");
-const config_1 = require("../../core/config");
-const auth_module_1 = require("../auth/auth.module");
 let ProductsModule = class ProductsModule {
 };
 exports.ProductsModule = ProductsModule;
 exports.ProductsModule = ProductsModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            database_module_1.DatabaseModule,
             jwt_1.JwtModule.register({
-                secret: config_1.config.jwt.secret,
-                signOptions: { expiresIn: config_1.config.jwt.expiresIn },
+                secret: process.env.JWT_SECRET || 'your-secret-key',
+                signOptions: { expiresIn: '1d' },
             }),
-            auth_module_1.AuthModule,
-        ],
-        providers: [
-            products_service_1.ProductsService,
-            {
-                provide: pg_1.Pool,
-                useValue: database_config_1.databasePool,
-            },
         ],
         controllers: [products_controller_1.ProductsController],
-        exports: [products_service_1.ProductsService],
+        providers: [products_service_1.ProductsService],
+        exports: [products_service_1.ProductsService]
     })
 ], ProductsModule);
 //# sourceMappingURL=products.module.js.map

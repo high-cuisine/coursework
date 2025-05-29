@@ -1,19 +1,21 @@
 import { Module } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { ReportsController } from './reports.controller';
-import { JwtModule } from '@nestjs/jwt';
-import { config } from '../../core/config';
 import { AuthModule } from '../auth/auth.module';
+import { Pool } from 'pg';
+import { databasePool } from '../../core/database.config';
 
 @Module({
   imports: [
-    JwtModule.register({
-      secret: config.jwt.secret,
-      signOptions: { expiresIn: config.jwt.expiresIn },
-    }),
     AuthModule,
   ],
-  providers: [ReportsService],
+  providers: [
+    ReportsService,
+    {
+      provide: Pool,
+      useValue: databasePool,
+    },
+  ],
   controllers: [ReportsController],
 })
 export class ReportsModule {}

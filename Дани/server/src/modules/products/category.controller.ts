@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
+import { Public } from '../../core/decorators/public.decorator';
 
 class CreateCategoryDto {
   categoryName: string;
@@ -15,20 +16,22 @@ class UpdateCategoryDto {
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @Post('/')
-  create(@Body() categoryName: string) {
-    console.log(categoryName);
-    return this.categoryService.create({ categoryName });
-  }
-
+  @Public()
   @Get()
   findAll() {
     return this.categoryService.findAll();
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.categoryService.findOne(+id);
+  }
+
+  @Post('/')
+  create(@Body() categoryName: string) {
+    console.log(categoryName);
+    return this.categoryService.create({ categoryName });
   }
 
   @Get(':id/products')

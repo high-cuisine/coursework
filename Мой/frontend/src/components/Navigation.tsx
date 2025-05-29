@@ -14,6 +14,9 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
+  Button,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -26,8 +29,10 @@ import {
   AttachMoney as AttachMoneyIcon,
   Home as HomeIcon,
   Logout as LogoutIcon,
+  AccountCircle,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import { Link as RouterLink } from 'react-router-dom';
 
 const drawerWidth = 240;
 
@@ -62,43 +67,43 @@ const Navigation: React.FC = () => {
 
   const menuItems = [
     {
-      text: 'Taxpayers',
+      text: 'Налогоплательщики',
       icon: <PeopleIcon />,
       path: '/taxpayers',
       roles: ['admin', 'inspector'],
     },
     {
-      text: 'Inspectors',
+      text: 'Инспекторы',
       icon: <BusinessIcon />,
       path: '/inspectors',
       roles: ['admin'],
     },
     {
-      text: 'Departments',
+      text: 'Отделы',
       icon: <AccountBalanceIcon />,
       path: '/departments',
       roles: ['admin'],
     },
     {
-      text: 'Taxes',
+      text: 'Налоги',
       icon: <ReceiptIcon />,
       path: '/taxes',
       roles: ['admin', 'inspector'],
     },
     {
-      text: 'Violations',
+      text: 'Нарушения',
       icon: <WarningIcon />,
       path: '/violations',
       roles: ['admin', 'inspector'],
     },
     {
-      text: 'Fines',
+      text: 'Штрафы',
       icon: <AttachMoneyIcon />,
       path: '/fines',
       roles: ['admin', 'inspector'],
     },
     {
-      text: 'Properties',
+      text: 'Имущество',
       icon: <HomeIcon />,
       path: '/properties',
       roles: ['admin', 'inspector'],
@@ -111,7 +116,7 @@ const Navigation: React.FC = () => {
     <Box>
       <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography variant="h6" noWrap component="div">
-          Tax System
+          Налоговая система
         </Typography>
         <IconButton onClick={handleDrawerToggle}>
           <ChevronLeftIcon />
@@ -132,7 +137,7 @@ const Navigation: React.FC = () => {
           <ListItemIcon>
             <LogoutIcon />
           </ListItemIcon>
-          <ListItemText primary="Logout" />
+          <ListItemText primary="Выйти" />
         </ListItem>
       </List>
     </Box>
